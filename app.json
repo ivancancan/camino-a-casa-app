@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Camino a Casa",
+    "slug": "camino-a-casa",
+    "owner": "ivancancan",
+    "scheme": "com.caminoacasa.app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+   "splash": {
+  "image": "./assets/splash-camino.png",
+  "resizeMode": "cover",
+  "backgroundColor": "#FCE3A0"
+},
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.caminoacasa.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.caminoacasa.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c4c623e3-3443-4996-8e93-b2392199398c"
+      }
+    }
+  }
+}
