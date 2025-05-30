@@ -140,10 +140,8 @@ export default function SwipeScreen() {
             <View style={styles.card}>
               <Image
                 source={{
-  uri: pet.fotos?.[0]?.startsWith('data:image')
-    ? pet.fotos[0]
-    : `data:image/jpeg;base64,${pet.fotos?.[0]}`,
-}}
+                  uri: pet.fotos?.[0] || 'https://via.placeholder.com/300', // URL pública directa
+                }}
                 style={styles.image}
               />
               <View style={styles.infoContainer}>

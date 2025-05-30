@@ -79,30 +79,61 @@ export default function GiverFormScreen() {
     });
   };
 
-const handlePickImage = async () => {
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    quality: 0.7,
-    base64: true, // 👈 CLAVE
-    selectionLimit: 0, // Para permitir múltiples imágenes (iOS 17+)
-  });
+  const handlePickImage = async () => {
+    // Solo permite seleccionar 1 imagen a la vez (compatible iOS y Android)
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+      base64: false,
+    });
 
-  if (!result.canceled && result.assets.length > 0) {
-    const base64Images = result.assets.map((asset) => {
-      if (asset.base64) {
-        return `data:image/jpeg;base64,${asset.base64}`;
+    if (!result.canceled && result.assets.length > 0) {
+      const asset = result.assets[0];
+
+      const { token } = await getSession();
+
+      const formData = new FormData();
+      const filename = asset.uri.split('/').pop();
+      const match = /\.(\w+)$/.exec(filename || '');
+      const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+      formData.append('file', {
+        uri: asset.uri,
+        name: filename,
+        type,
+      });
+
+      try {
+        const res = await fetch(`${API_BASE}/api/giver/upload-pet-photo`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Content-Type no se pone, fetch lo asigna automáticamente con formData
+          },
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          Alert.alert('Error', `Error subiendo imagen: ${errorText}`);
+          return;
+        }
+
+        const data = await res.json();
+        if (data.url) {
+          setForm((prev) => ({
+            ...prev,
+            fotos: [...prev.fotos, data.url],
+          }));
+        } else {
+          Alert.alert('Error', 'No se pudo obtener URL de la imagen subida.');
+        }
+      } catch (error) {
+        Alert.alert('Error', 'Hubo un problema al subir la foto.');
       }
-      return null;
-    }).filter(Boolean); // 👈 elimina los null por si acaso
-
-    setForm((prev) => ({
-      ...prev,
-      fotos: [...prev.fotos, ...base64Images],
-    }));
-  }
-};
-
+    }
+  };
 
   const handleRemoveImage = (index) => {
     const newFotos = [...form.fotos];

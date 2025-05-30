@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   RefreshControl,
 } from 'react-native';
-import { Text, Card, Button } from 'react-native-paper';
+import { Text, Card, Button, Avatar } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 
@@ -44,19 +44,41 @@ export default function ConfirmedMatchesScreen() {
     const pet = item.pets;
 
     return (
-      <Card style={styles.card}>
-        <Card.Title title={`Match con ${adopter?.nombre || 'Adoptante'}`} />
+      <Card style={styles.card} elevation={4}>
+        {pet?.fotos?.[0] ? (
+          <Card.Cover source={{ uri: pet.fotos[0] }} style={styles.petImage} />
+        ) : (
+          <View style={[styles.petImage, styles.petImagePlaceholder]}>
+            <Text>No hay foto de mascota</Text>
+          </View>
+        )}
+
         <Card.Content>
-          <Text style={styles.subtitle}>Mascota: {pet?.nombre}</Text>
-          <Image
-            source={{ uri: pet?.fotos?.[0] || 'https://via.placeholder.com/300x300.png?text=Mascota' }}
-            style={styles.image}
-          />
-          <Text>Adoptante: {adopter?.nombre}</Text>
-          <Text>Contacto: {adopter?.telefono}</Text>
+          <View style={styles.row}>
+            {adopter?.foto ? (
+              <Avatar.Image size={60} source={{ uri: adopter.foto }} />
+            ) : (
+              <Avatar.Icon size={60} icon="account" />
+            )}
+            <View style={styles.adopterInfo}>
+              <Text style={styles.adopterName}>{adopter?.nombre || 'Adoptante'}</Text>
+              <Text style={styles.adopterContact}>Contacto: {adopter?.telefono || 'N/A'}</Text>
+            </View>
+          </View>
+
+          <View style={styles.petInfo}>
+            <Text style={styles.petName}>Mascota: {pet?.nombre}</Text>
+          </View>
         </Card.Content>
+
         <Card.Actions>
-          <Button onPress={() => console.log('Ver perfil')}>Ver perfil</Button>
+          <Button
+            mode="contained"
+            onPress={() => console.log('Ver perfil de adoptante', adopter)}
+            style={styles.button}
+          >
+            Ver perfil
+          </Button>
         </Card.Actions>
       </Card>
     );
@@ -80,21 +102,49 @@ export default function ConfirmedMatchesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
+  container: { flex: 1, padding: 16, backgroundColor: '#f5f5f5' },
   card: {
-    marginBottom: 15,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  image: {
-    height: 180,
+  petImage: {
+    height: 200,
     width: '100%',
-    marginVertical: 10,
-    borderRadius: 8,
   },
-  subtitle: {
+  petImagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ddd',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  adopterInfo: {
+    marginLeft: 12,
+  },
+  adopterName: {
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 8,
+  },
+  adopterContact: {
+    fontSize: 14,
+    color: '#555',
+    marginTop: 4,
+  },
+  petInfo: {
+    marginTop: 16,
+  },
+  petName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  button: {
+    marginLeft: 'auto',
+    marginRight: 12,
   },
   emptyText: {
     marginTop: 50,
