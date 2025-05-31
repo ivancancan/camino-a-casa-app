@@ -7,6 +7,7 @@ import {
   Modal,
   Pressable,
   Dimensions,
+  SafeAreaView, // ✅ Importado
 } from 'react-native';
 import { Text, Title, Chip, Button, Divider } from 'react-native-paper';
 
@@ -15,7 +16,7 @@ export default function PetDetailScreen({ route, navigation }) {
   const [selectedImage, setSelectedImage] = useState(null);
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
         <Title style={styles.title}>{pet.nombre}</Title>
 
@@ -77,7 +78,7 @@ export default function PetDetailScreen({ route, navigation }) {
           <Image source={{ uri: selectedImage }} style={styles.fullImage} resizeMode="contain" />
         </Pressable>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 

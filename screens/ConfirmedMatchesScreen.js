@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
+  SafeAreaView,
   View,
   StyleSheet,
   FlatList,
-  SafeAreaView,
   RefreshControl,
 } from 'react-native';
 import { Text, Card, Button, Avatar } from 'react-native-paper';
@@ -11,15 +11,14 @@ import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import { useNavigation } from '@react-navigation/native';
 
-
 export default function ConfirmedMatchesScreen() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  // Función para resolver imágenes base64 o url o colocar placeholder
   const resolveImage = (foto) => {
-    if (!foto || foto.length === 0) return 'https://via.placeholder.com/300x300.png?text=Mascota';
+    if (!foto || foto.length === 0)
+      return 'https://via.placeholder.com/300x300.png?text=Mascota';
     if (foto.startsWith('http') || foto.startsWith('data:image')) return foto;
     return `data:image/jpeg;base64,${foto}`;
   };
@@ -49,14 +48,12 @@ export default function ConfirmedMatchesScreen() {
   }, []);
 
   const renderItem = ({ item }) => {
-    // Según el backend, adopter_profiles trae el perfil, y dentro está el user relacionado
     const adopterProfile = item.adopter_profiles || {};
     const adopterUser = adopterProfile.users || {};
     const pet = item.pets || {};
 
     const adopterName = adopterUser.name || 'Adoptante';
     const adopterPhoto = adopterProfile.foto;
-    // Ya no usamos adopterPhone porque no existe
     const petPhoto = resolveImage(pet.fotos?.[0]);
 
     return (
@@ -72,7 +69,6 @@ export default function ConfirmedMatchesScreen() {
             )}
             <View style={styles.adopterInfo}>
               <Text style={styles.adopterName}>{adopterName}</Text>
-              {/* Eliminado contacto porque no hay teléfono */}
             </View>
           </View>
 
@@ -85,38 +81,34 @@ export default function ConfirmedMatchesScreen() {
           <Button
             mode="contained"
             onPress={async () => {
-  try {
-    const { token } = await getSession();
+              try {
+                const { token } = await getSession();
 
-    // Paso 1: crear conversación si no existe
-    const response = await fetch(`${API_BASE}/api/matches/create-conversation/${item.id}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+                const response = await fetch(`${API_BASE}/api/matches/create-conversation/${item.id}`, {
+                  method: 'POST',
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                });
 
-    const result = await response.json();
-    const conversationId = result.conversation?.id || result.id;
+                const result = await response.json();
+                const conversationId = result.conversation?.id || result.id;
 
-    if (!conversationId) {
-      console.error('No se pudo obtener conversationId');
-      return;
-    }
+                if (!conversationId) {
+                  console.error('No se pudo obtener conversationId');
+                  return;
+                }
 
-    // Paso 2: navegar al ChatScreen
-navigation.navigate('ChatScreen', {
-  conversationId,
-  adopterName,
-  petName: pet.nombre || 'Mascota',
-});
-
-  } catch (error) {
-    console.error('Error al iniciar chat:', error);
-  }
-}}
-
+                navigation.navigate('ChatScreen', {
+                  conversationId,
+                  adopterName,
+                  petName: pet.nombre || 'Mascota',
+                });
+              } catch (error) {
+                console.error('Error al iniciar chat:', error);
+              }
+            }}
             style={styles.button}
           >
             Mandar mensaje
@@ -130,19 +122,20 @@ navigation.navigate('ChatScreen', {
     <SafeAreaView style={styles.container}>
       <FlatList
         data={matches}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         renderItem={renderItem}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchMatches} />}
         ListEmptyComponent={
           !loading && <Text style={styles.emptyText}>No tienes matches confirmados aún.</Text>
         }
+        contentContainerStyle={{ padding: 16 }}
       />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
   card: { marginBottom: 16, borderRadius: 12, overflow: 'hidden' },
   petImage: { height: 200, width: '100%' },
   row: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },

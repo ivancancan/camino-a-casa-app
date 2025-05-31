@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, SafeAreaView } from 'react-native'; // ✅ SafeAreaView importado
 import { Text, Button, TextInput, Title } from 'react-native-paper';
 import { register } from '../services/authService';
 import { saveSession } from '../services/sessionService';
@@ -50,60 +50,63 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Title style={styles.title}>Crear Cuenta</Title>
+    <SafeAreaView style={styles.safeArea}> {/* ✅ ENVUELVE TODA LA PANTALLA */}
+      <View style={styles.container}>
+        <Title style={styles.title}>Crear Cuenta</Title>
 
-      <TextInput
-        label="Nombre completo"
-        value={name}
-        onChangeText={setName}
-        mode="outlined"
-        style={styles.input}
-      />
-      <TextInput
-        label="Correo electrónico"
-        value={email}
-        onChangeText={setEmail}
-        mode="outlined"
-        style={styles.input}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        label="Contraseña"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        mode="outlined"
-        style={styles.input}
-      />
-      <TextInput
-        label="Confirmar contraseña"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-        mode="outlined"
-        style={styles.input}
-      />
+        <TextInput
+          label="Nombre completo"
+          value={name}
+          onChangeText={setName}
+          mode="outlined"
+          style={styles.input}
+        />
+        <TextInput
+          label="Correo electrónico"
+          value={email}
+          onChangeText={setEmail}
+          mode="outlined"
+          style={styles.input}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <TextInput
+          label="Contraseña"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          mode="outlined"
+          style={styles.input}
+        />
+        <TextInput
+          label="Confirmar contraseña"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          mode="outlined"
+          style={styles.input}
+        />
 
-      <Button
-        mode="contained"
-        onPress={handleRegister}
-        style={styles.button}
-        loading={loading}
-        disabled={loading}
-      >
-        Registrarse
-      </Button>
+        <Button
+          mode="contained"
+          onPress={handleRegister}
+          style={styles.button}
+          loading={loading}
+          disabled={loading}
+        >
+          Registrarse
+        </Button>
 
-      <Button onPress={() => navigation.navigate('Login')} style={styles.link}>
-        ¿Ya tienes cuenta? Inicia sesión
-      </Button>
-    </View>
+        <Button onPress={() => navigation.navigate('Login')} style={styles.link}>
+          ¿Ya tienes cuenta? Inicia sesión
+        </Button>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#fff' }, // ✅ ESTILO PARA SafeAreaView
   container: {
     flex: 1,
     padding: 20,

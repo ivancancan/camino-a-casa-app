@@ -12,6 +12,7 @@ import Swiper from 'react-native-deck-swiper';
 import { Text } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SwipeScreen() {
   console.clear();
@@ -131,7 +132,7 @@ export default function SwipeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {cardIndex < pets.length ? (
         <Swiper
           cards={pets}
@@ -168,7 +169,7 @@ export default function SwipeScreen() {
       <Animated.View style={[styles.feedback, { opacity: fadeAnim }]}>
         <RNText style={styles.feedbackText}>{feedback}</RNText>
       </Animated.View>
-    </View>
+    </SafeAreaView>
   );
 }
 

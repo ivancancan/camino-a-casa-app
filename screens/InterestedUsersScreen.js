@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View,
+  SafeAreaView,
   StyleSheet,
   FlatList,
   Alert,
@@ -81,7 +81,7 @@ export default function InterestedUsersScreen({ route }) {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" />
       ) : interestedUsers.length === 0 ? (
@@ -94,7 +94,7 @@ export default function InterestedUsersScreen({ route }) {
           contentContainerStyle={{ paddingBottom: 20 }}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
+  SafeAreaView,
   View,
   FlatList,
   ActivityIndicator,
@@ -42,107 +43,111 @@ export default function AdopterMatchesScreen() {
     fetchMatches();
   }, []);
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
-
-  if (!matches.length)
-    return (
-      <Text style={{ margin: 20, textAlign: 'center' }}>
-        Aún no tienes matches confirmados 🐾
-      </Text>
-    );
-
   const resolveImage = (foto) => {
     if (!foto) return 'https://via.placeholder.com/300x300.png?text=Mascota';
     if (foto.startsWith('http') || foto.startsWith('data:image')) return foto;
     return `data:image/jpeg;base64,${foto}`;
   };
 
-  return (
-    <FlatList
-      data={matches}
-      keyExtractor={(item) => item.id}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      contentContainerStyle={{ paddingBottom: 20 }}
-      renderItem={({ item }) => {
-        const pet = item.pets || {};
-        let owner = pet.users;
-
-        if (Array.isArray(owner)) owner = owner[0];
-        owner = owner || {};
-
-        const petPhoto = resolveImage(pet.fotos?.[0]);
-        const ownerPhoto = owner?.giver_profiles?.foto;
-
-        const ownerName =
-          owner.nombre?.trim() || owner.name?.trim() || 'Sin nombre';
-
-        return (
-          <Card key={item.id} style={styles.card} elevation={4}>
-            <Card.Cover source={{ uri: petPhoto }} style={styles.petImage} />
-            <Card.Title
-              title={pet.nombre || 'Sin nombre'}
-              subtitle={`Descripción: ${pet.descripcion || 'Sin descripción'}`}
-              left={(props) =>
-                ownerPhoto ? (
-                  <Avatar.Image {...props} source={{ uri: ownerPhoto }} />
-                ) : (
-                  <Avatar.Text {...props} label={ownerName.charAt(0)} />
-                )
-              }
-            />
-            <Card.Content>
-              <Text style={styles.ownerName}>Dueño: {ownerName}</Text>
-            </Card.Content>
-            <Card.Actions>
-              <Button
-                mode="contained"
-    onPress={async () => {
-       console.log('🔘 Botón presionado'); // ✅
-  try {
-    const session = await getSession();
-
-    const res = await fetch(
-      `${API_BASE}/api/matches/create-conversation/${item.id}`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.token}`,
-        },
-      }
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1 }}>
+        <ActivityIndicator style={{ marginTop: 20 }} />
+      </SafeAreaView>
     );
-
-    const result = await res.json();
-    console.log('🧪 Resultado de create-conversation:', result); // 👈 DEBUG
-
-   const conversationId = result.conversation?.id || result.id;
-
-
-    if (!conversationId) {
-      console.warn('❌ No se obtuvo conversationId');
-      return;
-    }
-
-    navigation.navigate('ChatScreen', {
-      conversationId,
-      adopterName: session.user.name,
-      petName: pet.nombre || 'Mascota',
-    });
-  } catch (err) {
-    console.error('❌ Error al iniciar chat:', err.message);
   }
-}}
 
-                style={styles.button}
-              >
-                Mandar mensaje
-              </Button>
-            </Card.Actions>
-          </Card>
-        );
-      }}
-    />
+  if (!matches.length) {
+    return (
+      <SafeAreaView style={{ flex: 1 }}>
+        <Text style={{ margin: 20, textAlign: 'center' }}>
+          Aún no tienes matches confirmados 🐾
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <FlatList
+        data={matches}
+        keyExtractor={(item) => item.id}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        contentContainerStyle={{ paddingBottom: 20 }}
+        renderItem={({ item }) => {
+          const pet = item.pets || {};
+          let owner = pet.users;
+
+          if (Array.isArray(owner)) owner = owner[0];
+          owner = owner || {};
+
+          const petPhoto = resolveImage(pet.fotos?.[0]);
+          const ownerPhoto = owner?.giver_profiles?.foto;
+          const ownerName =
+            owner.nombre?.trim() || owner.name?.trim() || 'Sin nombre';
+
+          return (
+            <Card key={item.id} style={styles.card} elevation={4}>
+              <Card.Cover source={{ uri: petPhoto }} style={styles.petImage} />
+              <Card.Title
+                title={pet.nombre || 'Sin nombre'}
+                subtitle={`Descripción: ${pet.descripcion || 'Sin descripción'}`}
+                left={(props) =>
+                  ownerPhoto ? (
+                    <Avatar.Image {...props} source={{ uri: ownerPhoto }} />
+                  ) : (
+                    <Avatar.Text {...props} label={ownerName.charAt(0)} />
+                  )
+                }
+              />
+              <Card.Content>
+                <Text style={styles.ownerName}>Dueño: {ownerName}</Text>
+              </Card.Content>
+              <Card.Actions>
+                <Button
+                  mode="contained"
+                  onPress={async () => {
+                    try {
+                      const session = await getSession();
+                      const res = await fetch(
+                        `${API_BASE}/api/matches/create-conversation/${item.id}`,
+                        {
+                          method: 'POST',
+                          headers: {
+                            Authorization: `Bearer ${session.token}`,
+                          },
+                        }
+                      );
+                      const result = await res.json();
+                      const conversationId =
+                        result.conversation?.id || result.id;
+
+                      if (!conversationId) {
+                        console.warn('❌ No se obtuvo conversationId');
+                        return;
+                      }
+
+                      navigation.navigate('ChatScreen', {
+                        conversationId,
+                        adopterName: session.user.name,
+                        petName: pet.nombre || 'Mascota',
+                      });
+                    } catch (err) {
+                      console.error('❌ Error al iniciar chat:', err.message);
+                    }
+                  }}
+                  style={styles.button}
+                >
+                  Mandar mensaje
+                </Button>
+              </Card.Actions>
+            </Card>
+          );
+        }}
+      />
+    </SafeAreaView>
   );
 }
 

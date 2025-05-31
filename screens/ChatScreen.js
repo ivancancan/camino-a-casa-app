@@ -1,6 +1,15 @@
-// src/screens/ChatScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, TextInput, Button, StyleSheet, Text } from 'react-native';
+import {
+  SafeAreaView,
+  View,
+  FlatList,
+  TextInput,
+  Button,
+  StyleSheet,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { API_BASE } from '../services/Api';
 import { getSession } from '../services/sessionService';
@@ -77,38 +86,48 @@ export default function ChatScreen() {
       ]}
     >
       <Text style={styles.messageText}>{item.message}</Text>
-      <Text style={styles.timestamp}>{new Date(item.created_at).toLocaleTimeString()}</Text>
+      <Text style={styles.timestamp}>
+        {new Date(item.created_at).toLocaleTimeString()}
+      </Text>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={messages}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 10 }}
-      />
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Escribe un mensaje..."
-          value={newMessage}
-          onChangeText={setNewMessage}
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+      >
+        <FlatList
+          data={messages}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ padding: 10 }}
         />
-        <Button title="Enviar" onPress={sendMessage} />
-      </View>
-    </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Escribe un mensaje..."
+            value={newMessage}
+            onChangeText={setNewMessage}
+          />
+          <Button title="Enviar" onPress={sendMessage} />
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#fff' },
   container: { flex: 1 },
   inputContainer: {
     flexDirection: 'row',
     padding: 8,
     borderTopWidth: 1,
     borderColor: '#ccc',
+    backgroundColor: '#fff',
   },
   input: {
     flex: 1,

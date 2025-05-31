@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
   View,
-  StyleSheet, // ✅ AÑADIDO AQUÍ
+  StyleSheet,
   Alert,
   TouchableWithoutFeedback,
+  SafeAreaView, // ✅ NUEVO
 } from 'react-native';
 import { Text, Title, Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -97,52 +98,55 @@ export default function SelectRoleScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Title style={styles.title}>¿Qué deseas hacer primero?</Title>
-      <Text style={{ marginBottom: 20 }}>Selecciona una o ambas opciones:</Text>
+    <SafeAreaView style={styles.safeArea}> {/* ✅ USO DE SafeAreaView */}
+      <View style={styles.container}>
+        <Title style={styles.title}>¿Qué deseas hacer primero?</Title>
+        <Text style={{ marginBottom: 20 }}>Selecciona una o ambas opciones:</Text>
 
-      <View style={styles.options}>
-        <TouchableWithoutFeedback onPress={() => toggleRole('adoptante')}>
-          <Animated.View
-            style={[
-              styles.card,
-              adopterAnim,
-              selectedRoles.includes('adoptante') && styles.cardSelected,
-            ]}
-          >
-            <MaterialCommunityIcons name="paw" size={40} />
-            <Text>Adoptar</Text>
-          </Animated.View>
-        </TouchableWithoutFeedback>
+        <View style={styles.options}>
+          <TouchableWithoutFeedback onPress={() => toggleRole('adoptante')}>
+            <Animated.View
+              style={[
+                styles.card,
+                adopterAnim,
+                selectedRoles.includes('adoptante') && styles.cardSelected,
+              ]}
+            >
+              <MaterialCommunityIcons name="paw" size={40} />
+              <Text>Adoptar</Text>
+            </Animated.View>
+          </TouchableWithoutFeedback>
 
-        <TouchableWithoutFeedback onPress={() => toggleRole('publicador')}>
-          <Animated.View
-            style={[
-              styles.card,
-              publisherAnim,
-              selectedRoles.includes('publicador') && styles.cardSelected,
-            ]}
-          >
-            <MaterialCommunityIcons name="hand-heart" size={40} />
-            <Text>Dar en adopción</Text>
-          </Animated.View>
-        </TouchableWithoutFeedback>
+          <TouchableWithoutFeedback onPress={() => toggleRole('publicador')}>
+            <Animated.View
+              style={[
+                styles.card,
+                publisherAnim,
+                selectedRoles.includes('publicador') && styles.cardSelected,
+              ]}
+            >
+              <MaterialCommunityIcons name="hand-heart" size={40} />
+              <Text>Dar en adopción</Text>
+            </Animated.View>
+          </TouchableWithoutFeedback>
+        </View>
+
+        <Button
+          mode="contained"
+          onPress={handleContinue}
+          loading={loading}
+          disabled={loading}
+          style={styles.button}
+        >
+          Continuar
+        </Button>
       </View>
-
-      <Button
-        mode="contained"
-        onPress={handleContinue}
-        loading={loading}
-        disabled={loading}
-        style={styles.button}
-      >
-        Continuar
-      </Button>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#fff' }, // ✅ NUEVO
   container: { flex: 1, padding: 20, justifyContent: 'center' },
   title: { marginBottom: 10, textAlign: 'center' },
   button: { marginTop: 30 },

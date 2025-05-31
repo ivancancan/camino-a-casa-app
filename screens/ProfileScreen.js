@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   TouchableOpacity,
+  SafeAreaView, // ✅ Importado
 } from 'react-native';
 import { getSession, clearSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
@@ -137,46 +138,54 @@ export default function ProfileScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Mi Cuenta</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Mi Cuenta</Text>
 
-      <View style={styles.avatarContainer}>
-        <TouchableOpacity onPress={showImageOptions} disabled={uploading || loadingPhoto}>
-          <Image
-            source={
-              !profilePhoto || imageError
-                ? require('../assets/default-avatar.png')
-                : { uri: profilePhoto }
-            }
-            style={styles.profileImage}
-            onError={() => setImageError(true)}
-          />
-          <IconButton
-            icon="pencil"
-            size={20}
-            style={styles.editIcon}
-            onPress={showImageOptions}
-            disabled={uploading || loadingPhoto}
-          />
-        </TouchableOpacity>
+        <View style={styles.avatarContainer}>
+          <TouchableOpacity onPress={showImageOptions} disabled={uploading || loadingPhoto}>
+            <Image
+              source={
+                !profilePhoto || imageError
+                  ? require('../assets/default-avatar.png')
+                  : { uri: profilePhoto }
+              }
+              style={styles.profileImage}
+              onError={() => setImageError(true)}
+            />
+            <IconButton
+              icon="pencil"
+              size={20}
+              style={styles.editIcon}
+              onPress={showImageOptions}
+              disabled={uploading || loadingPhoto}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {uploading && <ActivityIndicator style={{ marginBottom: 10 }} />}
+
+        {user && (
+          <>
+            <Text style={styles.text}>Nombre: {user.name}</Text>
+            <Text style={styles.text}>Correo: {user.email}</Text>
+          </>
+        )}
+
+        <Button title="Cerrar sesión" onPress={handleLogout} />
       </View>
-
-      {uploading && <ActivityIndicator style={{ marginBottom: 10 }} />}
-
-      {user && (
-        <>
-          <Text style={styles.text}>Nombre: {user.name}</Text>
-          <Text style={styles.text}>Correo: {user.email}</Text>
-        </>
-      )}
-
-      <Button title="Cerrar sesión" onPress={handleLogout} />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  safeArea: { flex: 1, backgroundColor: '#fff' }, // ✅ NUEVO
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   title: { fontSize: 24, marginBottom: 20, fontWeight: 'bold' },
   text: { fontSize: 16, marginBottom: 5 },
   avatarContainer: {

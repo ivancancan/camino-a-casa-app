@@ -1,30 +1,38 @@
+// GiverFormScreen.js (versión mejorada con diseño profesional y secciones organizadas)
+
 import React, { useState, useEffect } from 'react';
 import {
+  SafeAreaView,
   View,
-  StyleSheet,
   ScrollView,
+  StyleSheet,
   Alert,
-  Image,
-  Platform,
   KeyboardAvoidingView,
+  Platform,
+  Image,
   TouchableOpacity,
 } from 'react-native';
 import {
+  Text,
   TextInput,
   Button,
   Title,
-  Text,
-  Checkbox,
+  Divider,
+  Chip,
   Switch,
   RadioButton,
+  Avatar,
 } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { getSession } from '../services/sessionService';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import DraggableFlatList from 'react-native-draggable-flatlist';
 import { API_BASE } from '../services/Api';
 
 export default function GiverFormScreen() {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const petToEdit = route.params?.pet;
+
   const [form, setForm] = useState({
     nombre: '',
     sexo: '',
@@ -40,13 +48,24 @@ export default function GiverFormScreen() {
     descripcion: '',
   });
 
-  const route = useRoute();
-  const navigation = useNavigation();
-  const petToEdit = route.params?.pet;
-
   const tallaOptions = ['chico', 'mediano', 'grande'];
   const caracterOptions = ['juguetón', 'tranquilo', 'activo', 'protector'];
   const sexoOptions = ['macho', 'hembra'];
+  const edadOptions = [
+    '0-3 meses',
+    '3-6 meses',
+    '6-12 meses',
+    '1 año',
+    '2 años',
+    '3 años',
+    '4 años',
+    '5 años',
+    '6 años',
+    '7 años',
+    '8 años',
+    '9 años',
+    '10+ años'
+  ];
 
   useEffect(() => {
     if (petToEdit) {
@@ -80,7 +99,6 @@ export default function GiverFormScreen() {
   };
 
   const handlePickImage = async () => {
-    // Solo permite seleccionar 1 imagen a la vez (compatible iOS y Android)
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -90,7 +108,6 @@ export default function GiverFormScreen() {
 
     if (!result.canceled && result.assets.length > 0) {
       const asset = result.assets[0];
-
       const { token } = await getSession();
 
       const formData = new FormData();
@@ -107,30 +124,16 @@ export default function GiverFormScreen() {
       try {
         const res = await fetch(`${API_BASE}/api/giver/upload-pet-photo`, {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            // Content-Type no se pone, fetch lo asigna automáticamente con formData
-          },
+          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
 
-        if (!res.ok) {
-          const errorText = await res.text();
-          Alert.alert('Error', `Error subiendo imagen: ${errorText}`);
-          return;
-        }
-
         const data = await res.json();
         if (data.url) {
-          setForm((prev) => ({
-            ...prev,
-            fotos: [...prev.fotos, data.url],
-          }));
-        } else {
-          Alert.alert('Error', 'No se pudo obtener URL de la imagen subida.');
+          setForm((prev) => ({ ...prev, fotos: [...prev.fotos, data.url] }));
         }
-      } catch (error) {
-        Alert.alert('Error', 'Hubo un problema al subir la foto.');
+      } catch {
+        Alert.alert('Error al subir imagen');
       }
     }
   };
@@ -142,24 +145,13 @@ export default function GiverFormScreen() {
   };
 
   const handleSubmit = async () => {
-    if (
-      !form.nombre ||
-      !form.sexo ||
-      !form.edad ||
-      !form.talla ||
-      !form.telefono ||
-      form.fotos.length === 0
-    ) {
-      Alert.alert(
-        'Campos incompletos',
-        'Llena todos los campos obligatorios y sube al menos una foto.'
-      );
+    if (!form.nombre || !form.sexo || !form.edad || !form.talla || !form.telefono || form.fotos.length === 0) {
+      Alert.alert('Campos incompletos', 'Llena todos los campos obligatorios y sube al menos una foto.');
       return;
     }
 
     try {
       const { token } = await getSession();
-
       const method = petToEdit ? 'PUT' : 'POST';
       const url = petToEdit
         ? `${API_BASE}/api/pets/${petToEdit.id}`
@@ -174,190 +166,114 @@ export default function GiverFormScreen() {
         body: JSON.stringify(form),
       });
 
-      const text = await response.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (err) {
-        Alert.alert('Error', 'Respuesta inesperada del servidor.');
-        return;
-      }
-
-      if (data.error) {
-        Alert.alert('Error', data.error);
-      } else {
-        Alert.alert(
-          'Éxito',
-          petToEdit ? 'Mascota actualizada' : 'Mascota publicada con éxito'
-        );
+      const data = await response.json();
+      if (data.error) Alert.alert('Error', data.error);
+      else {
+        Alert.alert('Listo', petToEdit ? 'Mascota actualizada' : 'Mascota publicada');
         navigation.navigate('GiverHome', { screen: 'MisMascotas' });
       }
-    } catch (err) {
-      Alert.alert('Error', 'No se pudo guardar la mascota.');
+    } catch {
+      Alert.alert('No se pudo guardar');
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Title style={styles.title}>
-          {petToEdit ? 'Editar Mascota' : 'Publicar Mascota en Adopción'}
-        </Title>
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <Title style={styles.title}>Formulario de Adopción</Title>
 
-        <TextInput
-          label="Nombre del peludo"
-          value={form.nombre}
-          onChangeText={(text) => setForm({ ...form, nombre: text })}
-          style={styles.input}
-        />
+          {/* Info General */}
+          <Divider style={styles.divider} />
+          <TextInput label="Nombre" value={form.nombre} onChangeText={(text) => setForm({ ...form, nombre: text })} style={styles.input} />
 
-        <Text style={styles.label}>Sexo</Text>
-        <RadioButton.Group
-          onValueChange={(val) => setForm({ ...form, sexo: val })}
-          value={form.sexo}
-        >
-          {sexoOptions.map((option) => (
-            <RadioButton.Item
-              key={option}
-              label={option.charAt(0).toUpperCase() + option.slice(1)}
-              value={option}
-            />
+          <Text style={styles.label}>Sexo</Text>
+          <RadioButton.Group
+            onValueChange={(value) => setForm({ ...form, sexo: value })}
+            value={form.sexo}>
+            <View style={styles.row}>{sexoOptions.map((op) => <RadioButton.Item key={op} label={op} value={op} />)}</View>
+          </RadioButton.Group>
+
+          <Text style={styles.label}>Edad</Text>
+          <RadioButton.Group onValueChange={(value) => setForm({ ...form, edad: value })} value={form.edad}>
+            <View style={styles.rowWrap}>{edadOptions.map((op) => <RadioButton.Item key={op} label={op} value={op} />)}</View>
+          </RadioButton.Group>
+
+          <Text style={styles.label}>Talla</Text>
+          <View style={styles.rowWrap}>{tallaOptions.map((op) => (
+            <Chip key={op} selected={form.talla === op} onPress={() => setForm({ ...form, talla: op })} style={styles.chip}>{op}</Chip>
+          ))}</View>
+
+          <Text style={styles.label}>Carácter</Text>
+          <View style={styles.rowWrap}>{caracterOptions.map((op) => (
+            <Chip
+              key={op}
+              selected={form.caracter.includes(op)}
+              onPress={() => toggleItem('caracter', op)}
+              style={styles.chip}>
+              {op}
+            </Chip>
+          ))}</View>
+
+          {/* Fotos */}
+          <Divider style={styles.divider} />
+          <Text style={styles.label}>Fotos</Text>
+          <View style={styles.rowWrap}>
+            {form.fotos.map((uri, index) => (
+              <TouchableOpacity key={index} onLongPress={() => handleRemoveImage(index)}>
+                <Avatar.Image source={{ uri }} size={70} style={{ marginRight: 8 }} />
+              </TouchableOpacity>
+            ))}
+            <Button mode="outlined" onPress={handlePickImage}>Subir foto</Button>
+          </View>
+
+          {/* Contacto y Salud */}
+          <Divider style={styles.divider} />
+          <TextInput label="Teléfono de contacto" keyboardType="phone-pad" value={form.telefono} onChangeText={(t) => setForm({ ...form, telefono: t })} style={styles.input} />
+
+          <Text style={styles.label}>Salud</Text>
+          {['vacunado', 'esterilizado', 'desparasitado'].map((field) => (
+            <View key={field} style={styles.switchRow}>
+              <Text>{field}</Text>
+              <Switch value={form[field]} onValueChange={(val) => setForm({ ...form, [field]: val })} />
+            </View>
           ))}
-        </RadioButton.Group>
 
-        <TextInput
-          label="Edad"
-          value={form.edad}
-          onChangeText={(text) => setForm({ ...form, edad: text })}
-          style={styles.input}
-        />
-
-        <Text style={styles.label}>Talla</Text>
-        <RadioButton.Group
-          onValueChange={(val) => setForm({ ...form, talla: val })}
-          value={form.talla}
-        >
-          {tallaOptions.map((option) => (
-            <RadioButton.Item
-              key={option}
-              label={option.charAt(0).toUpperCase() + option.slice(1)}
-              value={option}
-            />
-          ))}
-        </RadioButton.Group>
-
-        <TextInput
-          label="Descripción (máx. 1000 caracteres)"
-          value={form.descripcion}
-          onChangeText={(text) => setForm({ ...form, descripcion: text })}
-          style={styles.input}
-          multiline
-          maxLength={1000}
-        />
-        <Text style={{ textAlign: 'right', marginBottom: 10 }}>
-          {form.descripcion.length}/1000
-        </Text>
-
-        <TextInput
-          label="Teléfono de contacto"
-          value={form.telefono}
-          onChangeText={(text) => setForm({ ...form, telefono: text })}
-          style={styles.input}
-          keyboardType="phone-pad"
-        />
-
-        <Text style={styles.label}>Carácter</Text>
-        {caracterOptions.map((c) => (
-          <Checkbox.Item
-            key={c}
-            label={c.charAt(0).toUpperCase() + c.slice(1)}
-            status={form.caracter.includes(c) ? 'checked' : 'unchecked'}
-            onPress={() => toggleItem('caracter', c)}
+          {/* Descripción */}
+          <Divider style={styles.divider} />
+          <TextInput
+            label="Descripción"
+            multiline
+            numberOfLines={4}
+            value={form.descripcion}
+            onChangeText={(text) => setForm({ ...form, descripcion: text })}
+            style={styles.input}
           />
-        ))}
 
-        <Text style={styles.label}>Convive con</Text>
-        {['niños', 'perros', 'gatos'].map((c) => (
-          <Checkbox.Item
-            key={c}
-            label={c.charAt(0).toUpperCase() + c.slice(1)}
-            status={form.conviveCon.includes(c) ? 'checked' : 'unchecked'}
-            onPress={() => toggleItem('conviveCon', c)}
-          />
-        ))}
-
-        <View style={styles.switchRow}>
-          <Text>Vacunado</Text>
-          <Switch
-            value={form.vacunado}
-            onValueChange={(v) => setForm({ ...form, vacunado: v })}
-          />
-        </View>
-        <View style={styles.switchRow}>
-          <Text>Esterilizado</Text>
-          <Switch
-            value={form.esterilizado}
-            onValueChange={(v) => setForm({ ...form, esterilizado: v })}
-          />
-        </View>
-        <View style={styles.switchRow}>
-          <Text>Desparasitado</Text>
-          <Switch
-            value={form.desparasitado}
-            onValueChange={(v) => setForm({ ...form, desparasitado: v })}
-          />
-        </View>
-
-        <Button
-          mode="outlined"
-          onPress={handlePickImage}
-          style={{ marginVertical: 10 }}
-        >
-          Subir Foto
-        </Button>
-
-        <DraggableFlatList
-          data={form.fotos}
-          horizontal
-          onDragEnd={({ data }) =>
-            setForm((prev) => ({ ...prev, fotos: data }))
-          }
-          keyExtractor={(item, index) => `foto-${index}`}
-          renderItem={({ item, index, drag }) => (
-            <TouchableOpacity key={index} onLongPress={drag} style={{ marginRight: 10 }}>
-              <Image source={{ uri: item }} style={styles.image} />
-              <Button mode="text" compact onPress={() => handleRemoveImage(index)}>
-                ❌
-              </Button>
-            </TouchableOpacity>
-          )}
-        />
-
-        <Button mode="contained" onPress={handleSubmit} style={{ marginTop: 20 }}>
-          {petToEdit ? 'Guardar cambios' : 'Publicar'}
-        </Button>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <Button mode="contained" onPress={handleSubmit} style={{ marginTop: 24 }}>
+            {petToEdit ? 'Guardar cambios' : 'Publicar'}
+          </Button>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20 },
-  title: { textAlign: 'center', marginBottom: 20 },
-  input: { marginBottom: 10 },
-  label: { marginTop: 15, fontWeight: 'bold' },
+  container: { padding: 20, paddingBottom: 60 },
+  title: { textAlign: 'center', marginBottom: 16 },
+  divider: { marginVertical: 16 },
+  input: { marginBottom: 12 },
+  label: { fontWeight: 'bold', marginTop: 12 },
+  row: { flexDirection: 'row', flexWrap: 'wrap' },
+  rowWrap: { flexDirection: 'row', flexWrap: 'wrap', marginVertical: 8 },
+  chip: { marginRight: 8, marginBottom: 8 },
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 5,
-  },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
+    marginVertical: 6,
   },
 });

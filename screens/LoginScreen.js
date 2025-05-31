@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { SafeAreaView, StyleSheet, Alert } from 'react-native'; // ✅ Usamos SafeAreaView
 import { TextInput, Button, Title, Text } from 'react-native-paper';
 import { login } from '../services/authService';
 import { saveSession } from '../services/sessionService';
@@ -49,7 +49,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Title style={styles.title}>Iniciar Sesión</Title>
 
       <TextInput
@@ -83,7 +83,7 @@ export default function LoginScreen({ navigation }) {
       <Button onPress={() => navigation.navigate('Register')} style={styles.link}>
         ¿No tienes cuenta? Regístrate
       </Button>
-    </View>
+    </SafeAreaView>
   );
 }
 
