@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   FlatList,
-  Image,
   SafeAreaView,
   RefreshControl,
 } from 'react-native';
@@ -14,6 +13,13 @@ import { API_BASE } from '../services/Api';
 export default function ConfirmedMatchesScreen() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Función para resolver imágenes base64 o url o colocar placeholder
+  const resolveImage = (foto) => {
+    if (!foto || foto.length === 0) return 'https://via.placeholder.com/300x300.png?text=Mascota';
+    if (foto.startsWith('http') || foto.startsWith('data:image')) return foto;
+    return `data:image/jpeg;base64,${foto}`;
+  };
 
   const fetchMatches = async () => {
     setLoading(true);
@@ -40,44 +46,45 @@ export default function ConfirmedMatchesScreen() {
   }, []);
 
   const renderItem = ({ item }) => {
-    const adopter = item.adopter_profiles;
-    const pet = item.pets;
+    // Según el backend, adopter_profiles trae el perfil, y dentro está el user relacionado
+    const adopterProfile = item.adopter_profiles || {};
+    const adopterUser = adopterProfile.users || {};
+    const pet = item.pets || {};
+
+    const adopterName = adopterUser.name || 'Adoptante';
+    const adopterPhoto = adopterProfile.foto;
+    // Ya no usamos adopterPhone porque no existe
+    const petPhoto = resolveImage(pet.fotos?.[0]);
 
     return (
       <Card style={styles.card} elevation={4}>
-        {pet?.fotos?.[0] ? (
-          <Card.Cover source={{ uri: pet.fotos[0] }} style={styles.petImage} />
-        ) : (
-          <View style={[styles.petImage, styles.petImagePlaceholder]}>
-            <Text>No hay foto de mascota</Text>
-          </View>
-        )}
+        <Card.Cover source={{ uri: petPhoto }} style={styles.petImage} />
 
         <Card.Content>
           <View style={styles.row}>
-            {adopter?.foto ? (
-              <Avatar.Image size={60} source={{ uri: adopter.foto }} />
+            {adopterPhoto ? (
+              <Avatar.Image size={60} source={{ uri: adopterPhoto }} />
             ) : (
               <Avatar.Icon size={60} icon="account" />
             )}
             <View style={styles.adopterInfo}>
-              <Text style={styles.adopterName}>{adopter?.nombre || 'Adoptante'}</Text>
-              <Text style={styles.adopterContact}>Contacto: {adopter?.telefono || 'N/A'}</Text>
+              <Text style={styles.adopterName}>{adopterName}</Text>
+              {/* Eliminado contacto porque no hay teléfono */}
             </View>
           </View>
 
           <View style={styles.petInfo}>
-            <Text style={styles.petName}>Mascota: {pet?.nombre}</Text>
+            <Text style={styles.petName}>Mascota: {pet.nombre || 'Sin nombre'}</Text>
           </View>
         </Card.Content>
 
         <Card.Actions>
           <Button
             mode="contained"
-            onPress={() => console.log('Ver perfil de adoptante', adopter)}
+            onPress={() => console.log('Mandar mensaje a:', adopterName)}
             style={styles.button}
           >
-            Ver perfil
+            Mandar mensaje
           </Button>
         </Card.Actions>
       </Card>
@@ -88,11 +95,9 @@ export default function ConfirmedMatchesScreen() {
     <SafeAreaView style={styles.container}>
       <FlatList
         data={matches}
-        keyExtractor={(item) => `${item.id}`}
+        keyExtractor={item => item.id}
         renderItem={renderItem}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={fetchMatches} />
-        }
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchMatches} />}
         ListEmptyComponent={
           !loading && <Text style={styles.emptyText}>No tienes matches confirmados aún.</Text>
         }
@@ -103,53 +108,13 @@ export default function ConfirmedMatchesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: '#f5f5f5' },
-  card: {
-    marginBottom: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  petImage: {
-    height: 200,
-    width: '100%',
-  },
-  petImagePlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ddd',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  adopterInfo: {
-    marginLeft: 12,
-  },
-  adopterName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  adopterContact: {
-    fontSize: 14,
-    color: '#555',
-    marginTop: 4,
-  },
-  petInfo: {
-    marginTop: 16,
-  },
-  petName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  button: {
-    marginLeft: 'auto',
-    marginRight: 12,
-  },
-  emptyText: {
-    marginTop: 50,
-    textAlign: 'center',
-    fontSize: 16,
-    color: '#666',
-  },
+  card: { marginBottom: 16, borderRadius: 12, overflow: 'hidden' },
+  petImage: { height: 200, width: '100%' },
+  row: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
+  adopterInfo: { marginLeft: 12 },
+  adopterName: { fontSize: 20, fontWeight: 'bold' },
+  petInfo: { marginTop: 16 },
+  petName: { fontSize: 18, fontWeight: '600', color: '#333' },
+  button: { marginLeft: 'auto', marginRight: 12 },
+  emptyText: { marginTop: 50, textAlign: 'center', fontSize: 16, color: '#666' },
 });

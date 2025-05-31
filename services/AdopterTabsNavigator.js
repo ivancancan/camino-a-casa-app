@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import SwipeScreen from '../screens/SwipeScreen';
 import AdopterProfileScreen from '../screens/AdopterProfileScreen';
 import ProfileScreen from '../screens/ProfileScreen'; // Reutilizamos el mismo
+import AdopterMatchesScreen from '../screens/AdopterMatchesScreen'; // ✅ Nuevo import
 
 const Tab = createBottomTabNavigator();
 
@@ -23,6 +24,16 @@ export default function AdopterTabsNavigator() {
           tabBarLabel: 'Explorar',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="paw" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Matches"
+        component={AdopterMatchesScreen} // ✅ Nueva pantalla
+        options={{
+          tabBarLabel: 'Matches',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="heart" color={color} size={size} />
           ),
         }}
       />

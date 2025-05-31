@@ -13,6 +13,7 @@ import { Text, Card, IconButton } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 
+
 export default function GiverDashboardScreen({ navigation }) {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +75,6 @@ export default function GiverDashboardScreen({ navigation }) {
     );
   };
 
-  // 🔧 Esta función normaliza la foto para mostrarla correctamente
   const resolveImage = (foto) => {
     if (!foto) return 'https://via.placeholder.com/300x300.png?text=Mascota';
     if (foto.startsWith('http') || foto.startsWith('data:image')) return foto;
