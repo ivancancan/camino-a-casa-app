@@ -1,13 +1,21 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
+import {
+  View,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+  StyleSheet,
+} from 'react-native';
 import { Card, Text, Avatar, Button } from 'react-native-paper';
 import { API_BASE } from '../services/Api';
 import { getSession } from '../services/sessionService';
+import { useNavigation } from '@react-navigation/native';
 
 export default function AdopterMatchesScreen() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const navigation = useNavigation();
 
   const fetchMatches = async () => {
     setLoading(true);
@@ -37,7 +45,11 @@ export default function AdopterMatchesScreen() {
   if (loading) return <ActivityIndicator style={{ marginTop: 20 }} />;
 
   if (!matches.length)
-    return <Text style={{ margin: 20, textAlign: 'center' }}>Aún no tienes matches confirmados 🐾</Text>;
+    return (
+      <Text style={{ margin: 20, textAlign: 'center' }}>
+        Aún no tienes matches confirmados 🐾
+      </Text>
+    );
 
   const resolveImage = (foto) => {
     if (!foto) return 'https://via.placeholder.com/300x300.png?text=Mascota';
@@ -49,26 +61,22 @@ export default function AdopterMatchesScreen() {
     <FlatList
       data={matches}
       keyExtractor={(item) => item.id}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
       contentContainerStyle={{ paddingBottom: 20 }}
       renderItem={({ item }) => {
         const pet = item.pets || {};
         let owner = pet.users;
 
-        // Si owner es arreglo, tomar primer elemento
-        if (Array.isArray(owner)) {
-          owner = owner[0];
-        }
+        if (Array.isArray(owner)) owner = owner[0];
         owner = owner || {};
 
         const petPhoto = resolveImage(pet.fotos?.[0]);
         const ownerPhoto = owner?.giver_profiles?.foto;
 
-        // Intenta obtener el nombre del dueño, prueba "nombre" y "name"
         const ownerName =
-          owner.nombre?.trim() ||
-          owner.name?.trim() ||
-          'Sin nombre';
+          owner.nombre?.trim() || owner.name?.trim() || 'Sin nombre';
 
         return (
           <Card key={item.id} style={styles.card} elevation={4}>
@@ -90,7 +98,42 @@ export default function AdopterMatchesScreen() {
             <Card.Actions>
               <Button
                 mode="contained"
-                onPress={() => console.log('Mandar mensaje a:', owner)}
+    onPress={async () => {
+       console.log('🔘 Botón presionado'); // ✅
+  try {
+    const session = await getSession();
+
+    const res = await fetch(
+      `${API_BASE}/api/matches/create-conversation/${item.id}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.token}`,
+        },
+      }
+    );
+
+    const result = await res.json();
+    console.log('🧪 Resultado de create-conversation:', result); // 👈 DEBUG
+
+   const conversationId = result.conversation?.id || result.id;
+
+
+    if (!conversationId) {
+      console.warn('❌ No se obtuvo conversationId');
+      return;
+    }
+
+    navigation.navigate('ChatScreen', {
+      conversationId,
+      adopterName: session.user.name,
+      petName: pet.nombre || 'Mascota',
+    });
+  } catch (err) {
+    console.error('❌ Error al iniciar chat:', err.message);
+  }
+}}
+
                 style={styles.button}
               >
                 Mandar mensaje

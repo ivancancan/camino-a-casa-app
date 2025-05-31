@@ -16,6 +16,8 @@ import GiverTabsNavigator from '../services/GiverTabsNavigator';
 import AdopterTabsNavigator from '../services/AdopterTabsNavigator';
 import InterestedUsersScreen from '../screens/InterestedUsersScreen'; // ajusta la ruta si está en otra carpeta
 import ConfirmedMatchesScreen from '../screens/ConfirmedMatchesScreen';
+import ChatScreen from '../screens/ChatScreen';
+
 
 
 
@@ -79,6 +81,12 @@ export default function Navigation({ initialRoute = 'Login' }) {
         />
         <Stack.Screen name="InterestedUsers" component={InterestedUsersScreen} />
         <Stack.Screen name="ConfirmedMatches" component={ConfirmedMatchesScreen} />
+<Stack.Screen
+  name="ChatScreen"
+  component={ChatScreen}
+  options={{ title: 'Chat' }}
+/>
+
 
 
       </Stack.Navigator>

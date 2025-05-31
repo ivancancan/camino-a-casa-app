@@ -1,8 +1,9 @@
 import 'react-native-get-random-values';
 import React, { useEffect, useState } from 'react';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native'; // ✅ Asegúrate de importar View también
 import { Provider as PaperProvider } from 'react-native-paper';
-import { GestureHandlerRootView } from 'react-native-gesture-handler'; // 👈 IMPORTANTE
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Navigation from './services/Navigation';
 import { getSession } from './services/sessionService';
 
@@ -25,9 +26,9 @@ export default function App() {
         console.log('➡️ Redirigiendo a AdopterHome');
         setInitialRoute('AdopterHome');
       } else if (user.role === 'giver') {
-  console.log('➡️ Redirigiendo a GiverHome');
-  setInitialRoute('GiverHome');
-} else {
+        console.log('➡️ Redirigiendo a GiverHome');
+        setInitialRoute('GiverHome');
+      } else {
         setInitialRoute('Login');
       }
     };
@@ -37,15 +38,19 @@ export default function App() {
 
   if (!initialRoute) {
     return (
-      <Text style={{ marginTop: 50, textAlign: 'center' }}>⏳ Cargando aplicación...</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: 18 }}>⏳ Cargando aplicación...</Text>
+      </View>
     );
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <PaperProvider>
-        <Navigation initialRoute={initialRoute} />
-      </PaperProvider>
+      <SafeAreaProvider>
+        <PaperProvider>
+          <Navigation initialRoute={initialRoute} />
+        </PaperProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

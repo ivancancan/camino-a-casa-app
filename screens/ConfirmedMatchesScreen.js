@@ -9,10 +9,13 @@ import {
 import { Text, Card, Button, Avatar } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
+import { useNavigation } from '@react-navigation/native';
+
 
 export default function ConfirmedMatchesScreen() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
   // Función para resolver imágenes base64 o url o colocar placeholder
   const resolveImage = (foto) => {
@@ -81,7 +84,39 @@ export default function ConfirmedMatchesScreen() {
         <Card.Actions>
           <Button
             mode="contained"
-            onPress={() => console.log('Mandar mensaje a:', adopterName)}
+            onPress={async () => {
+  try {
+    const { token } = await getSession();
+
+    // Paso 1: crear conversación si no existe
+    const response = await fetch(`${API_BASE}/api/matches/create-conversation/${item.id}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const result = await response.json();
+    const conversationId = result.conversation?.id || result.id;
+
+    if (!conversationId) {
+      console.error('No se pudo obtener conversationId');
+      return;
+    }
+
+    // Paso 2: navegar al ChatScreen
+navigation.navigate('ChatScreen', {
+  conversationId,
+  adopterName,
+  petName: pet.nombre || 'Mascota',
+});
+
+  } catch (error) {
+    console.error('Error al iniciar chat:', error);
+  }
+}}
+
             style={styles.button}
           >
             Mandar mensaje
