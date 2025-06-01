@@ -62,13 +62,13 @@ export default function MessagesListScreen() {
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() =>
-          navigation.navigate('ChatScreen', {
-            pet,
-            user: otherUser,
-            conversationId: item.id,
-          })
-        }
+onPress={() =>
+  navigation.navigate('ChatScreen', {
+    conversationId: item.id,
+    adopterName: otherUser.nombre, // este es el nombre que usas como título
+    petName: pet.nombre,
+  })
+}
       >
         <Image source={{ uri: otherUser.foto }} style={styles.avatar} />
         <View style={{ flex: 1 }}>

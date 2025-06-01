@@ -1,32 +1,46 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import PetDetailScreen from '../screens/PetDetailScreen';
 import SelectRoleScreen from '../screens/SelectRoleScreen';
 
-import SwipeScreen from '../screens/SwipeScreen'; // Home del adoptante
-
-import GiverFormScreen from '../screens/GiverFormScreen'; // aún accesible directo para edición
+import SwipeScreen from '../screens/SwipeScreen';
+import GiverFormScreen from '../screens/GiverFormScreen';
 import AdopterProfileScreen from '../screens/AdopterProfileScreen';
 
 import GiverTabsNavigator from '../services/GiverTabsNavigator';
 import AdopterTabsNavigator from '../services/AdopterTabsNavigator';
-import InterestedUsersScreen from '../screens/InterestedUsersScreen'; // ajusta la ruta si está en otra carpeta
+import InterestedUsersScreen from '../screens/InterestedUsersScreen';
 import ConfirmedMatchesScreen from '../screens/ConfirmedMatchesScreen';
 import ChatScreen from '../screens/ChatScreen';
-
-
-
 
 const Stack = createNativeStackNavigator();
 
 export default function Navigation({ initialRoute = 'Login' }) {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName={initialRoute}>
+      <Stack.Navigator
+        initialRouteName={initialRoute}
+        screenOptions={({ navigation }) => ({
+          headerBackTitleVisible: false,
+          headerBackVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <MaterialCommunityIcons
+                name="arrow-left"
+                size={28}
+                color="#333"
+                style={{ marginLeft: 16 }}
+              />
+            </TouchableOpacity>
+          ),
+        })}
+      >
         {/* Auth */}
         <Stack.Screen
           name="Login"
@@ -61,16 +75,16 @@ export default function Navigation({ initialRoute = 'Login' }) {
           options={{ title: 'Explorar Mascotas' }}
         />
 
-        {/* Publicador (Giver) */}
+        {/* Publicador */}
         <Stack.Screen
           name="GiverForm"
           component={GiverFormScreen}
           options={{ title: 'Publicar Mascota' }}
         />
         <Stack.Screen
-          name="GiverHome" // Este carga el tab navigator con footer
+          name="GiverHome"
           component={GiverTabsNavigator}
-          options={{ headerShown: false }}
+          options={{ headerShown: false, title: '' }}
         />
 
         {/* Compartido */}
@@ -79,16 +93,19 @@ export default function Navigation({ initialRoute = 'Login' }) {
           component={PetDetailScreen}
           options={{ title: 'Detalles de la Mascota' }}
         />
-        <Stack.Screen name="InterestedUsers" component={InterestedUsersScreen} />
-        <Stack.Screen name="ConfirmedMatches" component={ConfirmedMatchesScreen} />
-<Stack.Screen
-  name="ChatScreen"
-  component={ChatScreen}
-  options={{ title: 'Chat' }}
-/>
-
-
-
+        <Stack.Screen
+          name="InterestedUsers"
+          component={InterestedUsersScreen}
+        />
+        <Stack.Screen
+          name="ConfirmedMatches"
+          component={ConfirmedMatchesScreen}
+        />
+        <Stack.Screen
+          name="ChatScreen"
+          component={ChatScreen}
+          options={{ title: 'Chat' }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

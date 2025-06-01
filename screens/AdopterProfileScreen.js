@@ -204,8 +204,87 @@ export default function AdopterProfileScreen({ navigation }) {
           </Button>
         </View>
 
-        {/* Campos del formulario */}
-        {/* ... (todo el resto de los inputs permanece igual) */}
+        <Title>¿Tienes otras mascotas?</Title>
+        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, tieneMascotas: value }))} value={form.tieneMascotas}>
+          <RadioButton.Item label="Sí" value="sí" />
+          <RadioButton.Item label="No" value="no" />
+        </RadioButton.Group>
+
+        <Title>¿Tienes experiencia previa con mascotas?</Title>
+        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, experiencia: value }))} value={form.experiencia}>
+          <RadioButton.Item label="Sí" value="sí" />
+          <RadioButton.Item label="No" value="no" />
+        </RadioButton.Group>
+
+        <Title>¿Hay niños en casa?</Title>
+        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, hayNinos: value }))} value={form.hayNinos}>
+          <RadioButton.Item label="Sí" value="sí" />
+          <RadioButton.Item label="No" value="no" />
+        </RadioButton.Group>
+
+        <Title>Tipo de vivienda</Title>
+        <TextInput
+          label="Vivienda"
+          value={form.vivienda}
+          onChangeText={(text) => setForm((prev) => ({ ...prev, vivienda: text }))}
+          mode="outlined"
+        />
+
+        <Title>¿Tienes espacio exterior?</Title>
+        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, espacioExterior: value }))} value={form.espacioExterior}>
+          <RadioButton.Item label="Sí" value="sí" />
+          <RadioButton.Item label="No" value="no" />
+        </RadioButton.Group>
+
+        <Title>¿Cuál es tu ritmo de vida?</Title>
+        <TextInput
+          label="Ritmo de vida"
+          value={form.ritmo}
+          onChangeText={(text) => setForm((prev) => ({ ...prev, ritmo: text }))}
+          mode="outlined"
+        />
+
+        <Title>¿Puedes cubrir gastos médicos y alimentación?</Title>
+        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, cubreGastos: value }))} value={form.cubreGastos}>
+          <RadioButton.Item label="Sí" value="sí" />
+          <RadioButton.Item label="No" value="no" />
+        </RadioButton.Group>
+
+        <Title>¿Qué talla prefieres?</Title>
+        {opcionesTalla.map((talla) => (
+          <Checkbox.Item
+            key={talla}
+            label={talla}
+            status={form.tallaPreferida.includes(talla) ? 'checked' : 'unchecked'}
+            onPress={() => toggleItem('tallaPreferida', talla)}
+          />
+        ))}
+
+        <Title>¿Qué carácter prefieres?</Title>
+        {opcionesCaracter.map((caracter) => (
+          <Checkbox.Item
+            key={caracter}
+            label={caracter}
+            status={form.caracterPreferido.includes(caracter) ? 'checked' : 'unchecked'}
+            onPress={() => toggleItem('caracterPreferido', caracter)}
+          />
+        ))}
+
+        <Title>¿Aceptas seguimiento después de la adopción?</Title>
+        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, aceptaSeguimiento: value }))} value={form.aceptaSeguimiento}>
+          <RadioButton.Item label="Sí" value="sí" />
+          <RadioButton.Item label="No" value="no" />
+        </RadioButton.Group>
+
+        <Title>Motivación para adoptar</Title>
+        <TextInput
+          label="Motivación"
+          value={form.motivacion}
+          multiline
+          numberOfLines={4}
+          onChangeText={(text) => setForm((prev) => ({ ...prev, motivacion: text }))}
+          mode="outlined"
+        />
 
         <Button mode="contained" style={{ marginTop: 20 }} onPress={handleSubmit}>
           Guardar y continuar

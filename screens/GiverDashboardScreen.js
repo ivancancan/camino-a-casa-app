@@ -201,26 +201,35 @@ export default function GiverDashboardScreen({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {pets.length === 0 && !loading ? (
-        <Text style={styles.noPetsText}>No tienes mascotas publicadas.</Text>
-      ) : (
-        <FlatList
-          data={pets}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          refreshControl={
-            <RefreshControl refreshing={loading} onRefresh={fetchMyPets} />
-          }
-          contentContainerStyle={{ paddingBottom: 20 }}
-        />
-      )}
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        {pets.length === 0 && !loading ? (
+          <Text style={styles.noPetsText}>No tienes mascotas publicadas.</Text>
+        ) : (
+          <FlatList
+            data={pets}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            refreshControl={
+              <RefreshControl refreshing={loading} onRefresh={fetchMyPets} />
+            }
+            contentContainerStyle={styles.flatListContent}
+          />
+        )}
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
+  container: {
+    flex: 1,
+  },
+  flatListContent: {
+    paddingBottom: 120,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
   card: {
     marginBottom: 15,
     backgroundColor: '#fff',
