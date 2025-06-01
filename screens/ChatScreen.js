@@ -29,6 +29,15 @@ export default function ChatScreen() {
       const session = await getSession();
       setUserId(session.user.id);
       setToken(session.token);
+
+      // 🔔 Marcar como leídos todos los mensajes en esta conversación
+      await fetch(`${API_BASE}/api/messages/conversations/${conversationId}/mark-read`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${session.token}`,
+        },
+      });
+
       fetchMessages(session.token);
     };
 

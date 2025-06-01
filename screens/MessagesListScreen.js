@@ -12,6 +12,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 export default function MessagesListScreen() {
   const [conversations, setConversations] = useState([]);
@@ -30,7 +32,6 @@ export default function MessagesListScreen() {
       });
 
       const contentType = res.headers.get('content-type');
-
       if (!contentType || !contentType.includes('application/json')) {
         const text = await res.text();
         console.error('⚠️ Respuesta inesperada (no JSON):', text);
@@ -47,9 +48,12 @@ export default function MessagesListScreen() {
     }
   };
 
-  useEffect(() => {
+useFocusEffect(
+  useCallback(() => {
     fetchConversations();
-  }, []);
+  }, [])
+);
+
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -57,23 +61,39 @@ export default function MessagesListScreen() {
   }, []);
 
   const renderItem = ({ item }) => {
-    const { pet, otherUser, lastMessage } = item;
+    const { pet, otherUser, lastMessage, hasUnreadMessages } = item;
 
     return (
       <TouchableOpacity
         style={styles.card}
-onPress={() =>
-  navigation.navigate('ChatScreen', {
-    conversationId: item.id,
-    adopterName: otherUser.nombre, // este es el nombre que usas como título
-    petName: pet.nombre,
-  })
-}
+        onPress={() =>
+          navigation.navigate('ChatScreen', {
+            conversationId: item.id,
+            adopterName: otherUser.nombre,
+            petName: pet.nombre,
+          })
+        }
       >
         <Image source={{ uri: otherUser.foto }} style={styles.avatar} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.name}>{otherUser.nombre}</Text>
-          <Text numberOfLines={1} style={styles.message}>
+          <View style={styles.row}>
+            <Text
+              style={[
+                styles.name,
+                hasUnreadMessages && styles.unreadText,
+              ]}
+            >
+              {otherUser.nombre}
+            </Text>
+            {hasUnreadMessages && <View style={styles.unreadDot} />}
+          </View>
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.message,
+              hasUnreadMessages && styles.unreadText,
+            ]}
+          >
             {lastMessage}
           </Text>
         </View>
@@ -119,6 +139,10 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     marginRight: 12,
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   name: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -127,6 +151,17 @@ const styles = StyleSheet.create({
     color: '#555',
     fontSize: 14,
     marginTop: 2,
+  },
+  unreadText: {
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  unreadDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#007bff',
+    marginLeft: 8,
   },
   petImage: {
     width: 48,

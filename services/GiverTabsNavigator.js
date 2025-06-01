@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { View, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import GiverDashboardScreen from '../screens/GiverDashboardScreen';
@@ -6,10 +7,43 @@ import GiverFormScreen from '../screens/GiverFormScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ConfirmedMatchesScreen from '../screens/ConfirmedMatchesScreen';
 import MessagesListScreen from '../screens/MessagesListScreen';
+import { getSession } from '../services/sessionService';
+import { API_BASE } from '../services/Api';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
 
 export default function GiverTabsNavigator() {
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnread = async () => {
+    try {
+      const session = await getSession();
+      const res = await fetch(`${API_BASE}/api/messages/unread-counts`, {
+        headers: {
+          Authorization: `Bearer ${session.token}`,
+        },
+      });
+      const json = await res.json();
+      const total = Object.values(json.counts || {}).reduce((sum, n) => sum + n, 0);
+      setUnreadCount(total);
+    } catch (err) {
+      console.error('❌ Error al obtener mensajes no leídos:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchUnread(); // actualizar cuando el tab se vuelve a enfocar
+    }, [])
+  );
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -21,8 +55,8 @@ export default function GiverTabsNavigator() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: 80, // más alto para dar espacio al Home Indicator
-          paddingBottom: 30, // espacio visual para evitar que lo tape
+          height: 80,
+          paddingBottom: 30,
           paddingTop: 5,
           backgroundColor: '#fff',
           borderTopWidth: 0.5,
@@ -74,7 +108,28 @@ export default function GiverTabsNavigator() {
         options={{
           tabBarLabel: 'Mensajes',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="chat" color={color} size={24} />
+            <View>
+              <MaterialCommunityIcons name="chat" color={color} size={24} />
+              {unreadCount > 0 && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    right: -6,
+                    top: -4,
+                    backgroundColor: 'red',
+                    borderRadius: 10,
+                    width: 18,
+                    height: 18,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
           ),
         }}
       />
