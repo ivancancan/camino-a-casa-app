@@ -9,12 +9,16 @@ import {
   Alert,
   ScrollView,
   RefreshControl,
+  Pressable,
 } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import { Text } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function SwipeScreen() {
   const [pets, setPets] = useState([]);
@@ -22,6 +26,8 @@ export default function SwipeScreen() {
   const [feedback, setFeedback] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation();
+  const swiperRef = useRef(null);
 
   const fetchSuggestions = async () => {
     const session = await getSession();
@@ -133,27 +139,30 @@ export default function SwipeScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {cardIndex < pets.length ? (
           <Swiper
+            ref={swiperRef}
             cards={pets}
             cardIndex={cardIndex}
             renderCard={(pet) => (
-              <View style={styles.card}>
-                <Image
-                  source={{
-                    uri: pet.fotos?.[0] || 'https://via.placeholder.com/300',
-                  }}
-                  style={styles.image}
-                />
-                <View style={styles.infoContainer}>
-                  <Text style={styles.name}>{pet.nombre}</Text>
-                  <Text style={styles.age}>{pet.edad}</Text>
+              <Pressable onPress={() => navigation.navigate('PetDetail', { pet })}>
+                <View style={styles.card}>
+                  <Image
+                    source={{ uri: pet.fotos?.[0] || 'https://via.placeholder.com/300' }}
+                    style={styles.image}
+                  />
+                  <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.8)']}
+                    style={styles.gradient}
+                  />
+                  <View style={styles.textOverlay}>
+                    <Text style={styles.name}>{pet.nombre}</Text>
+                    <Text style={styles.info}>{pet.edad} – {pet.talla}</Text>
+                  </View>
                 </View>
-              </View>
+              </Pressable>
             )}
             onSwipedRight={handleSwipeRight}
             onSwipedLeft={handleSwipeLeft}
@@ -161,23 +170,47 @@ export default function SwipeScreen() {
             stackSize={3}
             backgroundColor="transparent"
             animateCardOpacity
+            disableTopSwipe
+            disableBottomSwipe
           />
         ) : (
           <View style={styles.noMoreContainer}>
-            <Text style={styles.noMoreText}>
-              🐾 No hay más mascotas en tu filtro por ahora
-            </Text>
+            <Text style={styles.noMoreText}>🐾 No hay más mascotas en tu filtro por ahora</Text>
           </View>
         )}
+
         <Animated.View style={[styles.feedback, { opacity: fadeAnim }]}>
           <RNText style={styles.feedbackText}>{feedback}</RNText>
         </Animated.View>
+
+        {cardIndex < pets.length && (
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="close-circle-outline"
+              size={40}
+              color="red"
+              onPress={() => {
+                handleSwipeLeft(cardIndex);
+                swiperRef.current?.swipeLeft();
+              }}
+            />
+            <MaterialCommunityIcons
+              name="heart-circle-outline"
+              size={40}
+              color="purple"
+              onPress={() => {
+                handleSwipeRight(cardIndex);
+                swiperRef.current?.swipeRight();
+              }}
+            />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const CARD_HEIGHT = Dimensions.get('window').height * 0.6;
+const CARD_HEIGHT = Dimensions.get('window').height * 0.7;
 const CARD_WIDTH = Dimensions.get('window').width * 0.9;
 
 const styles = StyleSheet.create({
@@ -192,26 +225,39 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: 'white',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 6,
   },
   image: {
     width: '100%',
-    height: '70%',
-    resizeMode: 'cover',
+    height: '100%',
+    position: 'absolute',
   },
-  infoContainer: {
-    padding: 20,
-    alignItems: 'center',
+  gradient: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  textOverlay: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
   },
   name: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
-    textTransform: 'capitalize',
+    color: '#fff',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
-  age: {
+  info: {
     fontSize: 18,
-    color: '#777',
-    marginTop: 5,
+    color: '#eee',
+    marginTop: 4,
   },
   feedback: {
     position: 'absolute',
@@ -234,5 +280,11 @@ const styles = StyleSheet.create({
   noMoreText: {
     fontSize: 18,
     textAlign: 'center',
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    marginTop: 10,
+    paddingBottom: 20,
   },
 });

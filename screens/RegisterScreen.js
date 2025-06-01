@@ -50,7 +50,7 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}> {/* ✅ ENVUELVE TODA LA PANTALLA */}
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Title style={styles.title}>Crear Cuenta</Title>
 

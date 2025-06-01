@@ -98,7 +98,7 @@ export default function SelectRoleScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}> {/* ✅ USO DE SafeAreaView */}
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Title style={styles.title}>¿Qué deseas hacer primero?</Title>
         <Text style={{ marginBottom: 20 }}>Selecciona una o ambas opciones:</Text>
