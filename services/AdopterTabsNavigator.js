@@ -16,28 +16,68 @@ const Tab = createBottomTabNavigator();
 
 export default function AdopterTabsNavigator() {
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unseenMatches, setUnseenMatches] = useState(0);
+
+  const fetchCounts = async () => {
+    try {
+      const session = await getSession();
+
+      // Mensajes no leídos
+      const res1 = await fetch(`${API_BASE}/api/messages/unread-counts`, {
+        headers: { Authorization: `Bearer ${session.token}` },
+      });
+      const json1 = await res1.json();
+      const totalUnread = Object.values(json1.counts || {}).reduce((sum, n) => sum + n, 0);
+      setUnreadCount(totalUnread);
+
+      // Matches no vistos
+      const res2 = await fetch(`${API_BASE}/api/matches/unseen-count`, {
+        headers: { Authorization: `Bearer ${session.token}` },
+      });
+
+      const text2 = await res2.text(); // 👈 importante para ver errores HTML
+      console.log('🧪 unseen-count response:', text2);
+
+      let json2;
+      try {
+        json2 = JSON.parse(text2);
+      } catch (err) {
+        console.error('❌ Error al parsear unseen-count:', err);
+        return;
+      }
+
+      setUnseenMatches(json2.unseenCount || 0);
+    } catch (err) {
+      console.error('❌ Error al obtener contadores:', err);
+    }
+  };
 
   useEffect(() => {
-    const fetchUnread = async () => {
-      try {
-        const session = await getSession();
-        const res = await fetch(`${API_BASE}/api/messages/unread-counts`, {
-          headers: {
-            Authorization: `Bearer ${session.token}`,
-          },
-        });
-        const json = await res.json();
-        const total = Object.values(json.counts || {}).reduce((sum, n) => sum + n, 0);
-        setUnreadCount(total);
-      } catch (err) {
-        console.error('❌ Error al obtener mensajes no leídos:', err);
-      }
-    };
-
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 10000); // refrescar cada 10 seg
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 10000); // refresca cada 10 seg
     return () => clearInterval(interval);
   }, []);
+
+  const renderBadge = (count) =>
+    count > 0 && (
+      <View
+        style={{
+          position: 'absolute',
+          right: -6,
+          top: -4,
+          backgroundColor: 'red',
+          borderRadius: 10,
+          width: 18,
+          height: 18,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+          {count > 9 ? '9+' : count}
+        </Text>
+      </View>
+    );
 
   return (
     <UnreadCountContext.Provider value={{ unreadCount, setUnreadCount }}>
@@ -84,7 +124,10 @@ export default function AdopterTabsNavigator() {
           options={{
             tabBarLabel: 'Matches',
             tabBarIcon: ({ color }) => (
-              <MaterialCommunityIcons name="heart" color={color} size={24} />
+              <View>
+                <MaterialCommunityIcons name="heart" color={color} size={24} />
+                {renderBadge(unseenMatches)}
+              </View>
             ),
           }}
         />
@@ -106,25 +149,7 @@ export default function AdopterTabsNavigator() {
             tabBarIcon: ({ color }) => (
               <View>
                 <MaterialCommunityIcons name="chat" color={color} size={24} />
-                {unreadCount > 0 && (
-                  <View
-                    style={{
-                      position: 'absolute',
-                      right: -6,
-                      top: -4,
-                      backgroundColor: 'red',
-                      borderRadius: 10,
-                      width: 18,
-                      height: 18,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </Text>
-                  </View>
-                )}
+                {renderBadge(unreadCount)}
               </View>
             ),
           }}

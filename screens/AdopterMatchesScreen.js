@@ -10,7 +10,7 @@ import {
 import { Card, Text, Avatar, Button } from 'react-native-paper';
 import { API_BASE } from '../services/Api';
 import { getSession } from '../services/sessionService';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 export default function AdopterMatchesScreen() {
   const [matches, setMatches] = useState([]);
@@ -42,6 +42,26 @@ export default function AdopterMatchesScreen() {
   useEffect(() => {
     fetchMatches();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const markMatchesAsSeen = async () => {
+        try {
+          const session = await getSession();
+          await fetch(`${API_BASE}/api/matches/mark-seen`, {
+            method: 'PATCH',
+            headers: {
+              Authorization: `Bearer ${session.token}`,
+            },
+          });
+        } catch (err) {
+          console.error('❌ Error al marcar matches como vistos:', err);
+        }
+      };
+
+      markMatchesAsSeen();
+    }, [])
+  );
 
   const resolveImage = (foto) => {
     if (!foto) return 'https://via.placeholder.com/300x300.png?text=Mascota';

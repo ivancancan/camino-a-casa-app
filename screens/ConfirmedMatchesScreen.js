@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
@@ -9,7 +9,7 @@ import {
 import { Text, Card, Button, Avatar } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 export default function ConfirmedMatchesScreen() {
   const [matches, setMatches] = useState([]);
@@ -46,6 +46,25 @@ export default function ConfirmedMatchesScreen() {
   useEffect(() => {
     fetchMatches();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const markMatchesAsSeen = async () => {
+        try {
+          const session = await getSession();
+          await fetch(`${API_BASE}/api/matches/mark-seen`, {
+            method: 'PATCH',
+            headers: {
+              Authorization: `Bearer ${session.token}`,
+            },
+          });
+        } catch (err) {
+          console.error('❌ Error al marcar matches como vistos (giver):', err);
+        }
+      };
+      markMatchesAsSeen();
+    }, [])
+  );
 
   const renderItem = ({ item }) => {
     const adopterProfile = item.adopter_profiles || {};
@@ -85,40 +104,40 @@ export default function ConfirmedMatchesScreen() {
 
         <Card.Actions>
           <Button
-  mode="contained"
-  onPress={async () => {
-    try {
-      const { token } = await getSession();
+            mode="contained"
+            onPress={async () => {
+              try {
+                const { token } = await getSession();
 
-      const response = await fetch(`${API_BASE}/api/matches/create-conversation/${item.id}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+                const response = await fetch(`${API_BASE}/api/matches/create-conversation/${item.id}`, {
+                  method: 'POST',
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                });
 
-      const result = await response.json();
-      const conversationId = result.conversation?.id || result.id;
+                const result = await response.json();
+                const conversationId = result.conversation?.id || result.id;
 
-      if (!conversationId) {
-        console.error('No se pudo obtener conversationId');
-        return;
-      }
+                if (!conversationId) {
+                  console.error('No se pudo obtener conversationId');
+                  return;
+                }
 
-      navigation.navigate('ChatScreen', {
-        conversationId,
-        adopterName,
-        petName: pet.nombre || 'Mascota',
-      });
-    } catch (error) {
-      console.error('Error al iniciar chat:', error);
-    }
-  }}
-  style={styles.button}
->
-  Mandar mensaje
-</Button>
+                navigation.navigate('ChatScreen', {
+                  conversationId,
+                  adopterName,
+                  petName: pet.nombre || 'Mascota',
+                });
+              } catch (error) {
+                console.error('Error al iniciar chat:', error);
+              }
+            }}
+            style={styles.button}
+          >
+            Mandar mensaje
+          </Button>
         </Card.Actions>
       </Card>
     );

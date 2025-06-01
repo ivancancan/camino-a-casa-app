@@ -7,6 +7,8 @@ import {
   Animated,
   Text as RNText,
   Alert,
+  ScrollView,
+  RefreshControl,
 } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import { Text } from 'react-native-paper';
@@ -15,67 +17,63 @@ import { API_BASE } from '../services/Api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SwipeScreen() {
-  console.clear();
-  console.log('🧭 Renderizando SwipeScreen...');
-
   const [pets, setPets] = useState([]);
   const [cardIndex, setCardIndex] = useState(0);
   const [feedback, setFeedback] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    console.log('👀 useEffect se ejecutó');
-    console.log(`🛰️ Endpoint de sugerencias: ${API_BASE}/api/swipes/suggestions`);
+  const fetchSuggestions = async () => {
+    const session = await getSession();
 
-    const fetchSuggestions = async () => {
-      const session = await getSession();
+    if (!session) {
+      Alert.alert('Sesión expirada', 'Por favor inicia sesión de nuevo.');
+      return;
+    }
 
-      if (!session) {
-        Alert.alert('Sesión expirada', 'Por favor inicia sesión de nuevo.');
+    const { token } = session;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/swipes/suggestions`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error('❌ Error parseando respuesta Swipe:', err);
+        Alert.alert('Error', 'Respuesta inválida del servidor');
         return;
       }
 
-      console.log(`📦 Session: user=${session?.user?.name}, role=${session?.user?.role}, token=${session?.token?.slice(0, 10)}...`);
-
-      const { token, user } = session;
-
-      try {
-        const res = await fetch(`${API_BASE}/api/swipes/suggestions`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const text = await res.text();
-        console.log('🔍 Respuesta cruda Swipe:', text);
-
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (err) {
-          console.error('❌ Error parseando respuesta Swipe:', err);
-          Alert.alert('Error', 'Respuesta inválida del servidor');
+      if (res.ok) {
+        if (!Array.isArray(data)) {
+          Alert.alert('Error', 'No se encontraron mascotas o tu perfil está incompleto.');
           return;
         }
 
-        if (res.ok) {
-          if (!Array.isArray(data)) {
-            Alert.alert('Error', 'No se encontraron mascotas o tu perfil está incompleto.');
-            return;
-          }
-
-          setPets(data);
-        } else {
-          Alert.alert('Error', data.error || 'No se pudieron cargar sugerencias');
-        }
-      } catch (err) {
-        console.error('❌ Error de red al cargar sugerencias:', err);
-        Alert.alert('Error', 'Fallo al conectar con el servidor');
+        setPets(data);
+        setCardIndex(0);
+      } else {
+        Alert.alert('Error', data.error || 'No se pudieron cargar sugerencias');
       }
-    };
+    } catch (err) {
+      console.error('❌ Error de red al cargar sugerencias:', err);
+      Alert.alert('Error', 'Fallo al conectar con el servidor');
+    }
+  };
 
+  useEffect(() => {
     fetchSuggestions();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchSuggestions();
+    setRefreshing(false);
+  };
 
   const showFeedback = (message) => {
     setFeedback(message);
@@ -133,42 +131,48 @@ export default function SwipeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {cardIndex < pets.length ? (
-        <Swiper
-          cards={pets}
-          cardIndex={cardIndex}
-          renderCard={(pet) => (
-            <View style={styles.card}>
-              <Image
-                source={{
-                  uri: pet.fotos?.[0] || 'https://via.placeholder.com/300', // URL pública directa
-                }}
-                style={styles.image}
-              />
-              <View style={styles.infoContainer}>
-                <Text style={styles.name}>{pet.nombre}</Text>
-                <Text style={styles.age}>{pet.edad}</Text>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {cardIndex < pets.length ? (
+          <Swiper
+            cards={pets}
+            cardIndex={cardIndex}
+            renderCard={(pet) => (
+              <View style={styles.card}>
+                <Image
+                  source={{
+                    uri: pet.fotos?.[0] || 'https://via.placeholder.com/300',
+                  }}
+                  style={styles.image}
+                />
+                <View style={styles.infoContainer}>
+                  <Text style={styles.name}>{pet.nombre}</Text>
+                  <Text style={styles.age}>{pet.edad}</Text>
+                </View>
               </View>
-            </View>
-          )}
-          onSwipedRight={handleSwipeRight}
-          onSwipedLeft={handleSwipeLeft}
-          onSwiped={(index) => setCardIndex(index + 1)}
-          stackSize={3}
-          backgroundColor="transparent"
-          animateCardOpacity
-        />
-      ) : (
-        <View style={styles.noMoreContainer}>
-          <Text style={styles.noMoreText}>
-            🐾 No hay más mascotas en tu filtro por ahora
-          </Text>
-        </View>
-      )}
-
-      <Animated.View style={[styles.feedback, { opacity: fadeAnim }]}>
-        <RNText style={styles.feedbackText}>{feedback}</RNText>
-      </Animated.View>
+            )}
+            onSwipedRight={handleSwipeRight}
+            onSwipedLeft={handleSwipeLeft}
+            onSwiped={(index) => setCardIndex(index + 1)}
+            stackSize={3}
+            backgroundColor="transparent"
+            animateCardOpacity
+          />
+        ) : (
+          <View style={styles.noMoreContainer}>
+            <Text style={styles.noMoreText}>
+              🐾 No hay más mascotas en tu filtro por ahora
+            </Text>
+          </View>
+        )}
+        <Animated.View style={[styles.feedback, { opacity: fadeAnim }]}>
+          <RNText style={styles.feedbackText}>{feedback}</RNText>
+        </Animated.View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

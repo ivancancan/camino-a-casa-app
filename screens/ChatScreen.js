@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { API_BASE } from '../services/Api';
 import { getSession } from '../services/sessionService';
 
@@ -25,24 +25,40 @@ export default function ChatScreen() {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    const fetchSessionAndMessages = async () => {
+    const initSession = async () => {
       const session = await getSession();
       setUserId(session.user.id);
       setToken(session.token);
-
-      // 🔔 Marcar como leídos todos los mensajes en esta conversación
-      await fetch(`${API_BASE}/api/messages/conversations/${conversationId}/mark-read`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${session.token}`,
-        },
-      });
-
-      fetchMessages(session.token);
     };
-
-    fetchSessionAndMessages();
+    initSession();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const markAndFetch = async () => {
+        try {
+          const session = await getSession();
+          console.log('➡️ PATCH /mark-read/', conversationId);
+
+          const response = await fetch(`${API_BASE}/api/messages/conversations/${conversationId}/mark-read`, {
+            method: 'PATCH',
+            headers: {
+              Authorization: `Bearer ${session.token}`,
+            },
+          });
+
+          const result = await response.json();
+          console.log('📬 Respuesta mark-read:', result);
+
+          fetchMessages(session.token);
+        } catch (err) {
+          console.error('❌ Error al marcar mensajes como leídos:', err.message);
+        }
+      };
+
+      markAndFetch();
+    }, [conversationId])
+  );
 
   useEffect(() => {
     navigation.setOptions({
@@ -87,19 +103,29 @@ export default function ChatScreen() {
     }
   };
 
-  const renderItem = ({ item }) => (
-    <View
-      style={[
-        styles.messageBubble,
-        item.sender_id === userId ? styles.sent : styles.received,
-      ]}
-    >
-      <Text style={styles.messageText}>{item.message}</Text>
-      <Text style={styles.timestamp}>
-        {new Date(item.created_at).toLocaleTimeString()}
-      </Text>
-    </View>
-  );
+  const renderItem = ({ item }) => {
+    if (item.sender_id === 'system') {
+      return (
+        <View style={styles.systemMessage}>
+          <Text style={styles.systemText}>{item.message}</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View
+        style={[
+          styles.messageBubble,
+          item.sender_id === userId ? styles.sent : styles.received,
+        ]}
+      >
+        <Text style={styles.messageText}>{item.message}</Text>
+        <Text style={styles.timestamp}>
+          {new Date(item.created_at).toLocaleTimeString()}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -160,6 +186,19 @@ const styles = StyleSheet.create({
   received: {
     backgroundColor: '#e0bbff',
     alignSelf: 'flex-start',
+  },
+  systemMessage: {
+    alignSelf: 'center',
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginVertical: 4,
+  },
+  systemText: {
+    color: '#666',
+    fontStyle: 'italic',
+    fontSize: 13,
   },
   timestamp: {
     fontSize: 10,

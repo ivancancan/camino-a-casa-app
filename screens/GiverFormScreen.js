@@ -1,4 +1,4 @@
-// GiverFormScreen.js (versión mejorada con diseño profesional y secciones organizadas)
+// GiverFormScreen.js (versión mejorada con 'pequeño' en lugar de 'chico')
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -48,7 +48,7 @@ export default function GiverFormScreen() {
     descripcion: '',
   });
 
-  const tallaOptions = ['chico', 'mediano', 'grande'];
+  const tallaOptions = ['pequeño', 'mediano', 'grande'];
   const caracterOptions = ['juguetón', 'tranquilo', 'activo', 'protector'];
   const sexoOptions = ['macho', 'hembra'];
   const edadOptions = [

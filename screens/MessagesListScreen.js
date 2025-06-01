@@ -14,7 +14,6 @@ import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import { useFocusEffect } from '@react-navigation/native';
 
-
 export default function MessagesListScreen() {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,13 +30,6 @@ export default function MessagesListScreen() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await res.text();
-        console.error('⚠️ Respuesta inesperada (no JSON):', text);
-        throw new Error('Respuesta no es JSON');
-      }
-
       const json = await res.json();
       setConversations(json.data || []);
     } catch (err) {
@@ -48,12 +40,11 @@ export default function MessagesListScreen() {
     }
   };
 
-useFocusEffect(
-  useCallback(() => {
-    fetchConversations();
-  }, [])
-);
-
+  useFocusEffect(
+    useCallback(() => {
+      fetchConversations();
+    }, [])
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -94,7 +85,7 @@ useFocusEffect(
               hasUnreadMessages && styles.unreadText,
             ]}
           >
-            {lastMessage}
+            {lastMessage || 'Sin mensajes aún.'}
           </Text>
         </View>
         <Image source={{ uri: pet.fotos?.[0] }} style={styles.petImage} />
