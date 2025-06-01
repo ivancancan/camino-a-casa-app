@@ -55,6 +55,7 @@ export default function ConfirmedMatchesScreen() {
     const adopterName = adopterUser.name || 'Adoptante';
     const adopterPhoto = adopterProfile.foto;
     const petPhoto = resolveImage(pet.fotos?.[0]);
+    const isAdopted = pet.status === 'adoptado';
 
     return (
       <Card style={styles.card} elevation={4}>
@@ -69,6 +70,11 @@ export default function ConfirmedMatchesScreen() {
             )}
             <View style={styles.adopterInfo}>
               <Text style={styles.adopterName}>{adopterName}</Text>
+              {isAdopted && (
+                <View style={styles.adoptedBadge}>
+                  <Text style={styles.adoptedText}>Adoptado</Text>
+                </View>
+              )}
             </View>
           </View>
 
@@ -79,40 +85,40 @@ export default function ConfirmedMatchesScreen() {
 
         <Card.Actions>
           <Button
-            mode="contained"
-            onPress={async () => {
-              try {
-                const { token } = await getSession();
+  mode="contained"
+  onPress={async () => {
+    try {
+      const { token } = await getSession();
 
-                const response = await fetch(`${API_BASE}/api/matches/create-conversation/${item.id}`, {
-                  method: 'POST',
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                  },
-                });
+      const response = await fetch(`${API_BASE}/api/matches/create-conversation/${item.id}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-                const result = await response.json();
-                const conversationId = result.conversation?.id || result.id;
+      const result = await response.json();
+      const conversationId = result.conversation?.id || result.id;
 
-                if (!conversationId) {
-                  console.error('No se pudo obtener conversationId');
-                  return;
-                }
+      if (!conversationId) {
+        console.error('No se pudo obtener conversationId');
+        return;
+      }
 
-                navigation.navigate('ChatScreen', {
-                  conversationId,
-                  adopterName,
-                  petName: pet.nombre || 'Mascota',
-                });
-              } catch (error) {
-                console.error('Error al iniciar chat:', error);
-              }
-            }}
-            style={styles.button}
-          >
-            Mandar mensaje
-          </Button>
+      navigation.navigate('ChatScreen', {
+        conversationId,
+        adopterName,
+        petName: pet.nombre || 'Mascota',
+      });
+    } catch (error) {
+      console.error('Error al iniciar chat:', error);
+    }
+  }}
+  style={styles.button}
+>
+  Mandar mensaje
+</Button>
         </Card.Actions>
       </Card>
     );
@@ -145,4 +151,17 @@ const styles = StyleSheet.create({
   petName: { fontSize: 18, fontWeight: '600', color: '#333' },
   button: { marginLeft: 'auto', marginRight: 12 },
   emptyText: { marginTop: 50, textAlign: 'center', fontSize: 16, color: '#666' },
+  adoptedBadge: {
+    marginTop: 6,
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  adoptedText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
 });

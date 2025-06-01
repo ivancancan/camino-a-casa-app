@@ -87,6 +87,7 @@ export default function AdopterMatchesScreen() {
           const ownerPhoto = owner?.giver_profiles?.foto;
           const ownerName =
             owner.nombre?.trim() || owner.name?.trim() || 'Sin nombre';
+          const isAdopted = pet.status?.toLowerCase?.() === 'adoptado';
 
           return (
             <Card key={item.id} style={styles.card} elevation={4}>
@@ -99,6 +100,13 @@ export default function AdopterMatchesScreen() {
                     <Avatar.Image {...props} source={{ uri: ownerPhoto }} />
                   ) : (
                     <Avatar.Text {...props} label={ownerName.charAt(0)} />
+                  )
+                }
+                right={() =>
+                  isAdopted && (
+                    <View style={styles.adoptedBadge}>
+                      <Text style={styles.adoptedText}>Adoptado</Text>
+                    </View>
                   )
                 }
               />
@@ -169,5 +177,17 @@ const styles = StyleSheet.create({
   button: {
     marginLeft: 'auto',
     marginRight: 12,
+  },
+  adoptedBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 10,
+  },
+  adoptedText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
 });

@@ -7,7 +7,7 @@ import {
   Modal,
   Pressable,
   Dimensions,
-  SafeAreaView, // ✅ Importado
+  SafeAreaView,
 } from 'react-native';
 import { Text, Title, Chip, Button, Divider } from 'react-native-paper';
 
@@ -19,6 +19,12 @@ export default function PetDetailScreen({ route, navigation }) {
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
         <Title style={styles.title}>{pet.nombre}</Title>
+
+        {pet.status === 'adoptado' && (
+          <View style={styles.adoptedContainer}>
+            <Chip style={styles.adoptedChip}>Adoptado</Chip>
+          </View>
+        )}
 
         {/* Galería de fotos */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageRow}>
@@ -91,6 +97,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 24,
     marginBottom: 10,
+  },
+  adoptedContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  adoptedChip: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 10,
+    paddingVertical: 2,
   },
   imageRow: {
     flexDirection: 'row',

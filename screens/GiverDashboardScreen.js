@@ -74,6 +74,68 @@ export default function GiverDashboardScreen({ navigation }) {
     );
   };
 
+  const handleMarkAsAdopted = async (petId) => {
+    Alert.alert(
+      'Confirmar',
+      '¿Estás seguro de que esta mascota ya fue adoptada?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Confirmar',
+          onPress: async () => {
+            try {
+              const { token } = await getSession();
+              const response = await fetch(`${API_BASE}/api/pets/${petId}/mark-adopted`, {
+                method: 'PATCH',
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              const data = await response.json();
+              if (response.ok) {
+                Alert.alert('Éxito', 'Mascota marcada como adoptada');
+                fetchMyPets();
+              } else {
+                Alert.alert('Error', data.error || 'No se pudo actualizar el estado');
+              }
+            } catch (err) {
+              Alert.alert('Error', 'Fallo al actualizar el estado');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleMarkAsAvailable = async (petId) => {
+    Alert.alert(
+      'Confirmar',
+      '¿Quieres volver a poner esta mascota como disponible?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sí',
+          onPress: async () => {
+            try {
+              const { token } = await getSession();
+              const response = await fetch(`${API_BASE}/api/pets/${petId}/mark-available`, {
+                method: 'PATCH',
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              const data = await response.json();
+              if (response.ok) {
+                Alert.alert('Éxito', 'La mascota está nuevamente disponible');
+                fetchMyPets();
+              } else {
+                Alert.alert('Error', data.error || 'No se pudo actualizar el estado');
+              }
+            } catch (err) {
+              Alert.alert('Error', 'Fallo al actualizar el estado');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const resolveImage = (foto) => {
     if (!foto) return 'https://via.placeholder.com/300x300.png?text=Mascota';
     if (foto.startsWith('http') || foto.startsWith('data:image')) return foto;
@@ -105,6 +167,30 @@ export default function GiverDashboardScreen({ navigation }) {
           <Text style={styles.cardTitle}>{item.nombre}</Text>
           <Text style={styles.cardSubtitle}>{`${item.edad} años • ${item.talla}`}</Text>
         </View>
+        {item.status === 'adoptado' ? (
+          <>
+            <Text style={{ color: 'green', fontWeight: 'bold', marginRight: 10 }}>
+              Adoptado
+            </Text>
+            <TouchableOpacity
+              onPress={() => handleMarkAsAvailable(item.id)}
+              style={{ marginRight: 10 }}
+            >
+              <Text style={{ color: '#007AFF', fontWeight: 'bold' }}>
+                Marcar como Disponible
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <TouchableOpacity
+            onPress={() => handleMarkAsAdopted(item.id)}
+            style={{ marginRight: 10 }}
+          >
+            <Text style={{ color: '#007AFF', fontWeight: 'bold' }}>
+              Marcar como Adoptado
+            </Text>
+          </TouchableOpacity>
+        )}
         <IconButton
           icon="delete"
           iconColor="red"
