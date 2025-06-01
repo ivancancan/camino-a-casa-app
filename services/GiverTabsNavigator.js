@@ -1,10 +1,11 @@
-import React from 'react';
+ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import GiverDashboardScreen from '../screens/GiverDashboardScreen'; // ✅ Asegúrate de importar el correcto
+import GiverDashboardScreen from '../screens/GiverDashboardScreen';
 import GiverFormScreen from '../screens/GiverFormScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ConfirmedMatchesScreen from '../screens/ConfirmedMatchesScreen';
+import MessagesListScreen from '../screens/MessagesListScreen'; // ✅ nuevo
 
 const Tab = createBottomTabNavigator();
 
@@ -18,10 +19,9 @@ export default function GiverTabsNavigator() {
       }}
     >
       <Tab.Screen
-        name="MisMascotas"
-        component={GiverDashboardScreen} // ✅ Aquí estaba el error
+        name="Mis Mascotas"
+        component={GiverDashboardScreen}
         options={{
-          tabBarLabel: 'Mis Mascotas',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="dog" color={color} size={size} />
           ),
@@ -31,27 +31,33 @@ export default function GiverTabsNavigator() {
         name="Publicar"
         component={GiverFormScreen}
         options={{
-          tabBarLabel: 'Publicar',
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="plus-circle-outline" color={color} size={size} />
+            <MaterialCommunityIcons name="plus-box" color={color} size={size} />
           ),
         }}
       />
       <Tab.Screen
-        name="Matches"
+        name="Matches Confirmados"
         component={ConfirmedMatchesScreen}
         options={{
-          tabBarLabel: 'Matches',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="heart" color={color} size={size} />
           ),
         }}
       />
       <Tab.Screen
-        name="Perfil"
+        name="Mensajes"
+        component={MessagesListScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="chat" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Cuenta"
         component={ProfileScreen}
         options={{
-          tabBarLabel: 'Perfil',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="account" color={color} size={size} />
           ),

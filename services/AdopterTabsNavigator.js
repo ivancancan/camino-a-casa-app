@@ -5,6 +5,8 @@ import SwipeScreen from '../screens/SwipeScreen';
 import AdopterProfileScreen from '../screens/AdopterProfileScreen';
 import ProfileScreen from '../screens/ProfileScreen'; // Reutilizamos el mismo
 import AdopterMatchesScreen from '../screens/AdopterMatchesScreen'; // ✅ Nuevo import
+import MessagesListScreen from '../screens/MessagesListScreen'; // 📩 Nuevo import
+
 
 const Tab = createBottomTabNavigator();
 
@@ -57,6 +59,17 @@ export default function AdopterTabsNavigator() {
           ),
         }}
       />
+      <Tab.Screen
+  name="Mensajes"
+  component={MessagesListScreen}
+  options={{
+    tabBarLabel: 'Mensajes',
+    tabBarIcon: ({ color, size }) => (
+      <MaterialCommunityIcons name="chat" color={color} size={size} />
+    ),
+  }}
+/>
+
     </Tab.Navigator>
   );
 }
