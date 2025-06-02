@@ -60,7 +60,17 @@ export default function SwipeScreen() {
           return;
         }
 
-        setPets(data);
+        const petsParsed = data.map((p) => ({
+          ...p,
+          fotos:
+            typeof p.fotos === 'string'
+              ? JSON.parse(p.fotos)
+              : Array.isArray(p.fotos)
+              ? p.fotos
+              : [],
+        }));
+
+        setPets(petsParsed);
         setCardIndex(0);
       } else {
         Alert.alert('Error', data.error || 'No se pudieron cargar sugerencias');

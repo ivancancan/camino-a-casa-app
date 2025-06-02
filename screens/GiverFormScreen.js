@@ -1,5 +1,3 @@
-// GiverFormScreen.js (versión mejorada con 'pequeño' en lugar de 'chico')
-
 import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
@@ -9,7 +7,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Image,
   TouchableOpacity,
 } from 'react-native';
 import {
@@ -24,6 +21,7 @@ import {
   Avatar,
 } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
+import DraggableFlatList from 'react-native-draggable-flatlist';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
@@ -31,7 +29,7 @@ import { API_BASE } from '../services/Api';
 export default function GiverFormScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const petToEdit = route.params?.pet;
+  const petToEdit = route?.params?.pet || null;
 
   const [form, setForm] = useState({
     nombre: '',
@@ -52,19 +50,9 @@ export default function GiverFormScreen() {
   const caracterOptions = ['juguetón', 'tranquilo', 'activo', 'protector'];
   const sexoOptions = ['macho', 'hembra'];
   const edadOptions = [
-    '0-3 meses',
-    '3-6 meses',
-    '6-12 meses',
-    '1 año',
-    '2 años',
-    '3 años',
-    '4 años',
-    '5 años',
-    '6 años',
-    '7 años',
-    '8 años',
-    '9 años',
-    '10+ años'
+    '0-3 meses', '3-6 meses', '6-12 meses', '1 año', '2 años',
+    '3 años', '4 años', '5 años', '6 años', '7 años', '8 años',
+    '9 años', '10+ años'
   ];
 
   useEffect(() => {
@@ -122,7 +110,7 @@ export default function GiverFormScreen() {
       });
 
       try {
-        const res = await fetch(`${API_BASE}/api/giver/upload-pet-photo`, {
+        const res = await fetch(`${API_BASE}/api/pets/upload-photo`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
@@ -131,8 +119,11 @@ export default function GiverFormScreen() {
         const data = await res.json();
         if (data.url) {
           setForm((prev) => ({ ...prev, fotos: [...prev.fotos, data.url] }));
+        } else {
+          Alert.alert('Error al subir imagen');
         }
-      } catch {
+      } catch (err) {
+        console.error('Error al subir imagen', err);
         Alert.alert('Error al subir imagen');
       }
     }
@@ -172,27 +163,23 @@ export default function GiverFormScreen() {
         Alert.alert('Listo', petToEdit ? 'Mascota actualizada' : 'Mascota publicada');
         navigation.navigate('GiverHome', { screen: 'MisMascotas' });
       }
-    } catch {
+    } catch (err) {
+      console.error('Error al guardar mascota', err);
       Alert.alert('No se pudo guardar');
     }
   };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
           <Title style={styles.title}>Formulario de Adopción</Title>
 
-          {/* Info General */}
           <Divider style={styles.divider} />
           <TextInput label="Nombre" value={form.nombre} onChangeText={(text) => setForm({ ...form, nombre: text })} style={styles.input} />
 
           <Text style={styles.label}>Sexo</Text>
-          <RadioButton.Group
-            onValueChange={(value) => setForm({ ...form, sexo: value })}
-            value={form.sexo}>
+          <RadioButton.Group onValueChange={(value) => setForm({ ...form, sexo: value })} value={form.sexo}>
             <View style={styles.row}>{sexoOptions.map((op) => <RadioButton.Item key={op} label={op} value={op} />)}</View>
           </RadioButton.Group>
 
@@ -208,28 +195,57 @@ export default function GiverFormScreen() {
 
           <Text style={styles.label}>Carácter</Text>
           <View style={styles.rowWrap}>{caracterOptions.map((op) => (
-            <Chip
-              key={op}
-              selected={form.caracter.includes(op)}
-              onPress={() => toggleItem('caracter', op)}
-              style={styles.chip}>
-              {op}
-            </Chip>
+            <Chip key={op} selected={form.caracter.includes(op)} onPress={() => toggleItem('caracter', op)} style={styles.chip}>{op}</Chip>
           ))}</View>
 
-          {/* Fotos */}
           <Divider style={styles.divider} />
-          <Text style={styles.label}>Fotos</Text>
-          <View style={styles.rowWrap}>
-            {form.fotos.map((uri, index) => (
-              <TouchableOpacity key={index} onLongPress={() => handleRemoveImage(index)}>
-                <Avatar.Image source={{ uri }} size={70} style={{ marginRight: 8 }} />
+          <Text style={styles.label}>Fotos (arrástralas para cambiar el orden)</Text>
+          <DraggableFlatList
+            data={form.fotos}
+            horizontal
+            keyExtractor={(item, index) => `foto-${index}`}
+            onDragEnd={({ data }) => setForm((prev) => ({ ...prev, fotos: data }))}
+            renderItem={({ item, drag, isActive, index }) => (
+              <TouchableOpacity
+                style={{ marginRight: 12, alignItems: 'center' }}
+                onLongPress={drag}
+                delayLongPress={150}
+              >
+                <Avatar.Image
+                  source={{ uri: item }}
+                  size={70}
+                  style={{
+                    opacity: isActive ? 0.8 : 1,
+                    borderWidth: index === 0 ? 2 : 0,
+                    borderColor: index === 0 ? '#6200ee' : 'transparent',
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => handleRemoveImage(index)}
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    backgroundColor: 'red',
+                    borderRadius: 12,
+                    width: 24,
+                    height: 24,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ color: 'white', fontWeight: 'bold' }}>×</Text>
+                </TouchableOpacity>
+                {index === 0 && (
+                  <Text style={{ fontSize: 10, color: '#6200ee', marginTop: 4 }}>Portada</Text>
+                )}
               </TouchableOpacity>
-            ))}
-            <Button mode="outlined" onPress={handlePickImage}>Subir foto</Button>
-          </View>
+            )}
+          />
+          <Button mode="outlined" onPress={handlePickImage} style={{ marginTop: 12 }}>
+            Subir foto
+          </Button>
 
-          {/* Contacto y Salud */}
           <Divider style={styles.divider} />
           <TextInput label="Teléfono de contacto" keyboardType="phone-pad" value={form.telefono} onChangeText={(t) => setForm({ ...form, telefono: t })} style={styles.input} />
 
@@ -241,7 +257,6 @@ export default function GiverFormScreen() {
             </View>
           ))}
 
-          {/* Descripción */}
           <Divider style={styles.divider} />
           <TextInput
             label="Descripción"
