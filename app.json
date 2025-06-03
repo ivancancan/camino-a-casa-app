@@ -1,36 +1,36 @@
 {
   "expo": {
-    "name": "Camino a Casa",
-    "slug": "camino-a-casa",
+    "name": "Arya",
+    "slug": "arya",
     "owner": "ivancancan",
-    "scheme": "com.caminoacasa.app",
+    "scheme": "com.arya.app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/arya.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-   "splash": {
-  "image": "./assets/splash-camino.png",
-  "resizeMode": "cover",
-  "backgroundColor": "#FCE3A0"
-},
+    "splash": {
+      "image": "./assets/arya-splash-2.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#FF0000"
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.caminoacasa.app",
+      "bundleIdentifier": "com.arya.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.caminoacasa.app",
+      "package": "com.arya.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/arya-adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/arya.png"
     },
     "extra": {
       "eas": {

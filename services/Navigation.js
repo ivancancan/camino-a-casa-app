@@ -45,12 +45,12 @@ export default function Navigation({ initialRoute = 'Login' }) {
         <Stack.Screen
           name="Login"
           component={LoginScreen}
-          options={{ title: 'Iniciar Sesión' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Register"
           component={RegisterScreen}
-          options={{ title: 'Registrarse' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="SelectRole"

@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, Alert } from 'react-native'; // ✅ Usamos SafeAreaView
-import { TextInput, Button, Title, Text } from 'react-native-paper';
+import {
+  SafeAreaView,
+  StyleSheet,
+  ImageBackground,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
+import { TextInput, Button } from 'react-native-paper';
 import { login } from '../services/authService';
 import { saveSession } from '../services/sessionService';
 
@@ -14,20 +22,18 @@ export default function LoginScreen({ navigation }) {
       setLoading(true);
       const response = await login(email, password);
 
-      console.log('🔐 Login tradicional → respuesta:', response);
-
       if (!response || typeof response !== 'object') {
-        Alert.alert('Error', 'Respuesta inesperada del servidor');
+        alert('Respuesta inesperada del servidor');
         return;
       }
 
       if (response.error) {
-        Alert.alert('Error', response.error);
+        alert(response.error);
         return;
       }
 
       if (!response.token || !response.user) {
-        Alert.alert('Error', 'Datos incompletos al iniciar sesión');
+        alert('Datos incompletos al iniciar sesión');
         return;
       }
 
@@ -42,66 +48,90 @@ export default function LoginScreen({ navigation }) {
       }
     } catch (error) {
       console.error('❌ Error inesperado en login tradicional:', error);
-      Alert.alert('Error', error.message || 'Ocurrió un error al iniciar sesión');
+      alert(error.message || 'Ocurrió un error al iniciar sesión');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Title style={styles.title}>Iniciar Sesión</Title>
+   <ImageBackground
+  source={require('../assets/login-bg.jpg')}
+  style={[styles.background, { backgroundColor: '#f8f2ff' }]} // 🎯 este color es clave
+  resizeMode="cover"
+>
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+          <ScrollView contentContainerStyle={styles.scroll}>
+            <Image source={require('../assets/arya.png')} style={styles.logo} />
 
-      <TextInput
-        label="Correo electrónico"
-        value={email}
-        onChangeText={setEmail}
-        mode="outlined"
-        style={styles.input}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        label="Contraseña"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        mode="outlined"
-        style={styles.input}
-      />
+            <TextInput
+              label="Correo electrónico"
+              value={email}
+              onChangeText={setEmail}
+              mode="outlined"
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <TextInput
+              label="Contraseña"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              mode="outlined"
+              style={styles.input}
+            />
 
-      <Button
-        mode="contained"
-        onPress={handleLogin}
-        style={styles.button}
-        loading={loading}
-        disabled={loading}
-      >
-        Entrar
-      </Button>
+            <Button
+              mode="contained"
+              onPress={handleLogin}
+              style={styles.button}
+              loading={loading}
+              disabled={loading}
+              contentStyle={styles.buttonContent}
+            >
+              Entrar
+            </Button>
 
-      <Button onPress={() => navigation.navigate('Register')} style={styles.link}>
-        ¿No tienes cuenta? Regístrate
-      </Button>
-    </SafeAreaView>
+            <Button onPress={() => navigation.navigate('Register')} style={styles.link}>
+              ¿No tienes cuenta? Regístrate
+            </Button>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'center',
   },
-  title: {
-    textAlign: 'center',
-    marginBottom: 30,
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 24,
+  },
+  logo: {
+    width: 280,         // tamaño más grande
+    height: 280,
+    alignSelf: 'center',
+    resizeMode: 'contain',
+    marginBottom: 32,
   },
   input: {
-    marginBottom: 15,
+    marginBottom: 16,
   },
   button: {
-    marginTop: 10,
+    marginTop: 8,
+    borderRadius: 8,
+  },
+  buttonContent: {
+    paddingVertical: 8,
   },
   link: {
     marginTop: 20,
