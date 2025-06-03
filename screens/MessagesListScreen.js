@@ -4,15 +4,14 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  Image,
   TouchableOpacity,
   RefreshControl,
   SafeAreaView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
-import { useFocusEffect } from '@react-navigation/native';
+import { Image } from 'expo-image';
 
 export default function MessagesListScreen() {
   const [conversations, setConversations] = useState([]);
@@ -65,7 +64,13 @@ export default function MessagesListScreen() {
           })
         }
       >
-        <Image source={{ uri: otherUser.foto }} style={styles.avatar} />
+        <Image
+          source={{ uri: otherUser.foto }}
+          style={styles.avatar}
+          contentFit="cover"
+          transition={300}
+          cachePolicy="memory-disk"
+        />
         <View style={{ flex: 1 }}>
           <View style={styles.row}>
             <Text
@@ -88,7 +93,13 @@ export default function MessagesListScreen() {
             {lastMessage || 'Sin mensajes aún.'}
           </Text>
         </View>
-        <Image source={{ uri: pet.fotos?.[0] }} style={styles.petImage} />
+        <Image
+          source={{ uri: pet.fotos?.[0] }}
+          style={styles.petImage}
+          contentFit="cover"
+          transition={300}
+          cachePolicy="memory-disk"
+        />
       </TouchableOpacity>
     );
   };
@@ -96,9 +107,13 @@ export default function MessagesListScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {loading ? (
-        <Text style={styles.loadingText}>Cargando mensajes...</Text>
+        <View style={styles.centeredContainer}>
+          <Text style={styles.loadingText}>Cargando mensajes...</Text>
+        </View>
       ) : conversations.length === 0 ? (
-        <Text style={styles.emptyText}>No tienes conversaciones activas aún.</Text>
+        <View style={styles.centeredContainer}>
+          <Text style={styles.noMessagesText}>🐾 No tienes conversaciones activas aún</Text>
+        </View>
       ) : (
         <FlatList
           data={conversations}
@@ -115,6 +130,12 @@ export default function MessagesListScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10, backgroundColor: '#fff' },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -161,14 +182,12 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   loadingText: {
-    marginTop: 20,
-    textAlign: 'center',
     fontSize: 16,
+    textAlign: 'center',
   },
-  emptyText: {
-    marginTop: 20,
+  noMessagesText: {
+    fontSize: 18,
     textAlign: 'center',
-    fontSize: 16,
-    color: '#777',
+    color: '#333',
   },
 });

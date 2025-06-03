@@ -4,7 +4,7 @@ import {
   StyleSheet,
   Alert,
   TouchableWithoutFeedback,
-  SafeAreaView, // ✅ NUEVO
+  SafeAreaView,
 } from 'react-native';
 import { Text, Title, Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -101,7 +101,7 @@ export default function SelectRoleScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Title style={styles.title}>¿Qué deseas hacer primero?</Title>
-        <Text style={{ marginBottom: 20 }}>Selecciona una o ambas opciones:</Text>
+        <Text style={styles.subtitle}>Selecciona una o ambas opciones:</Text>
 
         <View style={styles.options}>
           <TouchableWithoutFeedback onPress={() => toggleRole('adoptante')}>
@@ -112,8 +112,8 @@ export default function SelectRoleScreen({ navigation }) {
                 selectedRoles.includes('adoptante') && styles.cardSelected,
               ]}
             >
-              <MaterialCommunityIcons name="paw" size={40} />
-              <Text>Adoptar</Text>
+              <MaterialCommunityIcons name="paw" size={40} color="#333" />
+              <Text style={styles.cardText}>Adoptar</Text>
             </Animated.View>
           </TouchableWithoutFeedback>
 
@@ -125,8 +125,8 @@ export default function SelectRoleScreen({ navigation }) {
                 selectedRoles.includes('publicador') && styles.cardSelected,
               ]}
             >
-              <MaterialCommunityIcons name="hand-heart" size={40} />
-              <Text>Dar en adopción</Text>
+              <MaterialCommunityIcons name="hand-heart" size={40} color="#333" />
+              <Text style={styles.cardText}>Dar en adopción</Text>
             </Animated.View>
           </TouchableWithoutFeedback>
         </View>
@@ -137,6 +137,7 @@ export default function SelectRoleScreen({ navigation }) {
           loading={loading}
           disabled={loading}
           style={styles.button}
+          contentStyle={styles.buttonContent}
         >
           Continuar
         </Button>
@@ -146,10 +147,20 @@ export default function SelectRoleScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' }, // ✅ NUEVO
+  safeArea: { flex: 1, backgroundColor: '#fff' },
   container: { flex: 1, padding: 20, justifyContent: 'center' },
-  title: { marginBottom: 10, textAlign: 'center' },
-  button: { marginTop: 30 },
+  title: {
+    marginBottom: 8,
+    textAlign: 'center',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    textAlign: 'center',
+    marginBottom: 20,
+    fontSize: 15,
+    color: '#555',
+  },
   options: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -169,5 +180,17 @@ const styles = StyleSheet.create({
     borderColor: '#6200ee',
     borderWidth: 2,
     backgroundColor: '#e0ddff',
+  },
+  cardText: {
+    marginTop: 8,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  button: {
+    marginTop: 30,
+    borderRadius: 8,
+  },
+  buttonContent: {
+    paddingVertical: 8,
   },
 });

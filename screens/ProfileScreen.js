@@ -4,17 +4,17 @@ import {
   Text,
   Button,
   StyleSheet,
-  Image,
   ActivityIndicator,
   Alert,
   TouchableOpacity,
-  SafeAreaView, // ✅ Importado
+  SafeAreaView,
 } from 'react-native';
 import { getSession, clearSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import * as ImagePicker from 'expo-image-picker';
 import { v4 as uuidv4 } from 'uuid';
 import { IconButton } from 'react-native-paper';
+import { Image } from 'expo-image'; // ✅ Usamos expo-image
 
 export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
@@ -104,6 +104,7 @@ export default function ProfileScreen({ navigation }) {
       const uploadData = await uploadRes.json();
       if (uploadData.url) {
         setProfilePhoto(uploadData.url);
+        setImageError(false);
 
         const saveRes = await fetch(`${API_BASE}/api/${role}/profile`, {
           method: 'POST',
@@ -151,6 +152,9 @@ export default function ProfileScreen({ navigation }) {
                   : { uri: profilePhoto }
               }
               style={styles.profileImage}
+              contentFit="cover"
+              transition={300}
+              cachePolicy="memory-disk"
               onError={() => setImageError(true)}
             />
             <IconButton
@@ -179,7 +183,7 @@ export default function ProfileScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' }, // ✅ NUEVO
+  safeArea: { flex: 1, backgroundColor: '#fff' },
   container: {
     flex: 1,
     justifyContent: 'center',

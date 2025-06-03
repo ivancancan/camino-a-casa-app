@@ -10,6 +10,7 @@ import { Text, Card, Button, Avatar } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { Image } from 'expo-image';
 
 export default function ConfirmedMatchesScreen() {
   const [matches, setMatches] = useState([]);
@@ -78,12 +79,24 @@ export default function ConfirmedMatchesScreen() {
 
     return (
       <Card style={styles.card} elevation={4}>
-        <Card.Cover source={{ uri: petPhoto }} style={styles.petImage} />
+        <Image
+          source={petPhoto}
+          style={styles.petImage}
+          contentFit="cover"
+          transition={300}
+          cachePolicy="memory-disk"
+        />
 
         <Card.Content>
           <View style={styles.row}>
             {adopterPhoto ? (
-              <Avatar.Image size={60} source={{ uri: adopterPhoto }} />
+              <Image
+                source={adopterPhoto}
+                style={styles.avatar}
+                contentFit="cover"
+                transition={300}
+                cachePolicy="memory-disk"
+              />
             ) : (
               <Avatar.Icon size={60} icon="account" />
             )}
@@ -151,7 +164,11 @@ export default function ConfirmedMatchesScreen() {
         renderItem={renderItem}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchMatches} />}
         ListEmptyComponent={
-          !loading && <Text style={styles.emptyText}>No tienes matches confirmados aún.</Text>
+          !loading && (
+            <View style={styles.noMatchesContainer}>
+              <Text style={styles.noMoreText}>🐾 Aún no tienes matches confirmados</Text>
+            </View>
+          )
         }
         contentContainerStyle={{ padding: 16 }}
       />
@@ -164,12 +181,17 @@ const styles = StyleSheet.create({
   card: { marginBottom: 16, borderRadius: 12, overflow: 'hidden' },
   petImage: { height: 200, width: '100%' },
   row: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#ccc',
+  },
   adopterInfo: { marginLeft: 12 },
   adopterName: { fontSize: 20, fontWeight: 'bold' },
   petInfo: { marginTop: 16 },
   petName: { fontSize: 18, fontWeight: '600', color: '#333' },
   button: { marginLeft: 'auto', marginRight: 12 },
-  emptyText: { marginTop: 50, textAlign: 'center', fontSize: 16, color: '#666' },
   adoptedBadge: {
     marginTop: 6,
     backgroundColor: '#4CAF50',
@@ -182,5 +204,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 12,
+  },
+  noMatchesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  noMoreText: {
+    fontSize: 18,
+    textAlign: 'center',
   },
 });

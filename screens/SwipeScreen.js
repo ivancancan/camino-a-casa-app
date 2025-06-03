@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
-  Image,
   Dimensions,
   Animated,
   Text as RNText,
@@ -19,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image'; // ✅ NUEVO
 
 export default function SwipeScreen() {
   const [pets, setPets] = useState([]);
@@ -162,6 +162,9 @@ export default function SwipeScreen() {
                   <Image
                     source={{ uri: pet.fotos?.[0] || 'https://via.placeholder.com/300' }}
                     style={styles.image}
+                    contentFit="cover"
+                    transition={300}
+                    cachePolicy="disk"
                   />
                   <LinearGradient
                     colors={['transparent', 'rgba(0,0,0,0.8)']}
@@ -284,8 +287,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   noMoreContainer: {
-    padding: 30,
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
   },
   noMoreText: {
     fontSize: 18,

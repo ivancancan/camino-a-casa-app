@@ -1,3 +1,4 @@
+// src/screens/GiverFormScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
@@ -18,13 +19,13 @@ import {
   Chip,
   Switch,
   RadioButton,
-  Avatar,
 } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
+import { Image } from 'expo-image';
 
 export default function GiverFormScreen() {
   const navigation = useNavigation();
@@ -161,7 +162,7 @@ export default function GiverFormScreen() {
       if (data.error) Alert.alert('Error', data.error);
       else {
         Alert.alert('Listo', petToEdit ? 'Mascota actualizada' : 'Mascota publicada');
-        navigation.navigate('GiverHome', { screen: 'MisMascotas' });
+        navigation.navigate('GiverHome', { screen: 'Mis Mascotas' });
       }
     } catch (err) {
       console.error('Error al guardar mascota', err);
@@ -211,14 +212,19 @@ export default function GiverFormScreen() {
                 onLongPress={drag}
                 delayLongPress={150}
               >
-                <Avatar.Image
-                  source={{ uri: item }}
-                  size={70}
+                <Image
+                  source={item}
                   style={{
+                    width: 70,
+                    height: 70,
+                    borderRadius: 35,
                     opacity: isActive ? 0.8 : 1,
                     borderWidth: index === 0 ? 2 : 0,
                     borderColor: index === 0 ? '#6200ee' : 'transparent',
                   }}
+                  contentFit="cover"
+                  transition={300}
+                  cachePolicy="memory-disk"
                 />
                 <TouchableOpacity
                   onPress={() => handleRemoveImage(index)}

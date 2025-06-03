@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  ImageBackground,
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,6 +9,7 @@ import {
 import { TextInput, Button } from 'react-native-paper';
 import { login } from '../services/authService';
 import { saveSession } from '../services/sessionService';
+import { Image, ImageBackground } from 'expo-image'; // ✅ nuevo import
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -55,15 +54,26 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-   <ImageBackground
-  source={require('../assets/login-bg.jpg')}
-  style={[styles.background, { backgroundColor: '#f8f2ff' }]} // 🎯 este color es clave
-  resizeMode="cover"
->
+    <ImageBackground
+      source={require('../assets/login-bg.jpg')}
+      style={[styles.background, { backgroundColor: '#f8f2ff' }]}
+      contentFit="cover"
+      transition={300}
+      cachePolicy="memory-disk"
+    >
       <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+        >
           <ScrollView contentContainerStyle={styles.scroll}>
-            <Image source={require('../assets/arya.png')} style={styles.logo} />
+            <Image
+              source={require('../assets/arya.png')}
+              style={styles.logo}
+              contentFit="contain"
+              transition={300}
+              cachePolicy="memory-disk"
+            />
 
             <TextInput
               label="Correo electrónico"
@@ -94,7 +104,10 @@ export default function LoginScreen({ navigation }) {
               Entrar
             </Button>
 
-            <Button onPress={() => navigation.navigate('Register')} style={styles.link}>
+            <Button
+              onPress={() => navigation.navigate('Register')}
+              style={styles.link}
+            >
               ¿No tienes cuenta? Regístrate
             </Button>
           </ScrollView>
@@ -117,10 +130,9 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   logo: {
-    width: 280,         // tamaño más grande
+    width: 280,
     height: 280,
     alignSelf: 'center',
-    resizeMode: 'contain',
     marginBottom: 32,
   },
   input: {

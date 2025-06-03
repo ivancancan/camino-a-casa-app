@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  ImageBackground,
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  View,
 } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import { register } from '../services/authService';
 import { saveSession } from '../services/sessionService';
+import { Image } from 'expo-image'; // ✅ Usamos expo-image
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -52,15 +52,28 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-<ImageBackground
-  source={require('../assets/login-bg.jpg')}
-  style={[styles.background, { backgroundColor: '#f8f2ff' }]} // 🎯 este color es clave
-  resizeMode="cover"
->
+    <View style={styles.backgroundWrapper}>
+      <Image
+        source={require('../assets/login-bg.jpg')}
+        style={StyleSheet.absoluteFill}
+        contentFit="cover"
+        transition={300}
+        cachePolicy="memory-disk"
+      />
+
       <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+        >
           <ScrollView contentContainerStyle={styles.scroll}>
-            <Image source={require('../assets/arya.png')} style={styles.logo} />
+            <Image
+              source={require('../assets/arya.png')}
+              style={styles.logo}
+              contentFit="contain"
+              transition={300}
+              cachePolicy="memory-disk"
+            />
 
             <TextInput
               label="Nombre completo"
@@ -112,13 +125,14 @@ export default function RegisterScreen({ navigation }) {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
+  backgroundWrapper: {
     flex: 1,
+    backgroundColor: '#f8f2ff', // 🎯 color base detrás del fondo
   },
   container: {
     flex: 1,
@@ -132,7 +146,6 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     alignSelf: 'center',
-    resizeMode: 'contain',
     marginBottom: 24,
   },
   input: {

@@ -11,8 +11,8 @@
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/arya-splash-2.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#FF0000"
+      "resizeMode": "contain",              
+      "backgroundColor": "#f8f2ff"           
     },
     "ios": {
       "supportsTablet": true,

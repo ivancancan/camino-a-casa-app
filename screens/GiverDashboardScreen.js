@@ -4,7 +4,6 @@ import {
   View,
   StyleSheet,
   Alert,
-  Image,
   FlatList,
   RefreshControl,
   TouchableOpacity,
@@ -12,6 +11,7 @@ import {
 import { Text, Card, IconButton } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
+import { Image } from 'expo-image'; // ✅ NUEVO
 
 export default function GiverDashboardScreen({ navigation }) {
   const [pets, setPets] = useState([]);
@@ -150,8 +150,11 @@ export default function GiverDashboardScreen({ navigation }) {
     >
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: resolveImage(item.fotos?.[0]) }}
+          source={resolveImage(item.fotos?.[0])}
           style={styles.image}
+          contentFit="cover"
+          transition={300}
+          cachePolicy="memory-disk"
         />
         {item.interesados > 0 && (
           <TouchableOpacity

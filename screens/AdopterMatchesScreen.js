@@ -8,9 +8,10 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Card, Text, Avatar, Button } from 'react-native-paper';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { Image } from 'expo-image';
 import { API_BASE } from '../services/Api';
 import { getSession } from '../services/sessionService';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 export default function AdopterMatchesScreen() {
   const [matches, setMatches] = useState([]);
@@ -79,10 +80,8 @@ export default function AdopterMatchesScreen() {
 
   if (!matches.length) {
     return (
-      <SafeAreaView style={{ flex: 1 }}>
-        <Text style={{ margin: 20, textAlign: 'center' }}>
-          Aún no tienes matches confirmados 🐾
-        </Text>
+      <SafeAreaView style={styles.noMatchesContainer}>
+        <Text style={styles.noMoreText}>🐾 Aún no tienes matches confirmados</Text>
       </SafeAreaView>
     );
   }
@@ -111,13 +110,25 @@ export default function AdopterMatchesScreen() {
 
           return (
             <Card key={item.id} style={styles.card} elevation={4}>
-              <Card.Cover source={{ uri: petPhoto }} style={styles.petImage} />
+              <Image
+                source={petPhoto}
+                style={styles.petImage}
+                contentFit="cover"
+                transition={300}
+                cachePolicy="memory-disk"
+              />
               <Card.Title
                 title={pet.nombre || 'Sin nombre'}
                 subtitle={`Descripción: ${pet.descripcion || 'Sin descripción'}`}
                 left={(props) =>
                   ownerPhoto ? (
-                    <Avatar.Image {...props} source={{ uri: ownerPhoto }} />
+                    <Image
+                      source={ownerPhoto}
+                      style={styles.avatar}
+                      contentFit="cover"
+                      transition={300}
+                      cachePolicy="memory-disk"
+                    />
                   ) : (
                     <Avatar.Text {...props} label={ownerName.charAt(0)} />
                   )
@@ -189,6 +200,14 @@ const styles = StyleSheet.create({
   petImage: {
     height: 200,
     width: '100%',
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginLeft: 15,
   },
   ownerName: {
     fontWeight: 'bold',
@@ -209,5 +228,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 12,
+  },
+  noMatchesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  noMoreText: {
+    fontSize: 18,
+    textAlign: 'center',
   },
 });

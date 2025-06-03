@@ -1,6 +1,6 @@
 import 'react-native-get-random-values';
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native'; // ✅ Asegúrate de importar View también
+import { View, Image, StyleSheet } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -38,8 +38,12 @@ export default function App() {
 
   if (!initialRoute) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ fontSize: 18 }}>⏳ Cargando aplicación...</Text>
+      <View style={styles.loadingContainer}>
+        <Image
+          source={require('./assets/arya.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
       </View>
     );
   }
@@ -54,3 +58,16 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f2ff', // ✅ mismo fondo que splash y login
+  },
+  logo: {
+    width: 160,
+    height: 160,
+  },
+});

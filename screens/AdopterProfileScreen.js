@@ -1,3 +1,4 @@
+// AdopterProfileScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
@@ -5,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
-  Image,
 } from 'react-native';
 import {
   TextInput,
@@ -21,6 +21,7 @@ import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import { Image } from 'expo-image';
 
 export default function AdopterProfileScreen({ navigation }) {
   const [form, setForm] = useState({
@@ -185,9 +186,17 @@ export default function AdopterProfileScreen({ navigation }) {
         <Title style={styles.title}>Perfil del Adoptante</Title>
 
         <Image
-          source={photoPreview ? { uri: photoPreview } : require('../assets/default-avatar.png')}
+          source={
+            photoPreview
+              ? photoPreview
+              : require('../assets/default-avatar.png')
+          }
           style={styles.imagePreview}
+          contentFit="cover"
+          transition={300}
+          cachePolicy="memory-disk"
         />
+
         {subiendoImagen && (
           <View style={{ alignItems: 'center', marginBottom: 10 }}>
             <ActivityIndicator animating={true} size="small" />
@@ -204,87 +213,70 @@ export default function AdopterProfileScreen({ navigation }) {
           </Button>
         </View>
 
-        <Title>¿Tienes otras mascotas?</Title>
-        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, tieneMascotas: value }))} value={form.tieneMascotas}>
+        {/* Campos del formulario */}
+        <TextInput label="¿Por qué quieres adoptar?" value={form.motivacion} onChangeText={(text) => setForm({ ...form, motivacion: text })} multiline style={{ marginBottom: 16 }} />
+
+        <Text>¿Tienes otras mascotas?</Text>
+        <RadioButton.Group onValueChange={(val) => setForm({ ...form, tieneMascotas: val })} value={form.tieneMascotas}>
           <RadioButton.Item label="Sí" value="sí" />
           <RadioButton.Item label="No" value="no" />
         </RadioButton.Group>
 
-        <Title>¿Tienes experiencia previa con mascotas?</Title>
-        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, experiencia: value }))} value={form.experiencia}>
+        <Text>¿Tienes experiencia con mascotas?</Text>
+        <RadioButton.Group onValueChange={(val) => setForm({ ...form, experiencia: val })} value={form.experiencia}>
           <RadioButton.Item label="Sí" value="sí" />
           <RadioButton.Item label="No" value="no" />
         </RadioButton.Group>
 
-        <Title>¿Hay niños en casa?</Title>
-        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, hayNinos: value }))} value={form.hayNinos}>
+        <Text>¿Hay niños en casa?</Text>
+        <RadioButton.Group onValueChange={(val) => setForm({ ...form, hayNinos: val })} value={form.hayNinos}>
           <RadioButton.Item label="Sí" value="sí" />
           <RadioButton.Item label="No" value="no" />
         </RadioButton.Group>
 
-        <Title>Tipo de vivienda</Title>
-        <TextInput
-          label="Vivienda"
-          value={form.vivienda}
-          onChangeText={(text) => setForm((prev) => ({ ...prev, vivienda: text }))}
-          mode="outlined"
-        />
+        <Text>Tipo de vivienda</Text>
+        <TextInput value={form.vivienda} onChangeText={(text) => setForm({ ...form, vivienda: text })} style={{ marginBottom: 16 }} />
 
-        <Title>¿Tienes espacio exterior?</Title>
-        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, espacioExterior: value }))} value={form.espacioExterior}>
+        <Text>¿Tienes espacio exterior?</Text>
+        <RadioButton.Group onValueChange={(val) => setForm({ ...form, espacioExterior: val })} value={form.espacioExterior}>
           <RadioButton.Item label="Sí" value="sí" />
           <RadioButton.Item label="No" value="no" />
         </RadioButton.Group>
 
-        <Title>¿Cuál es tu ritmo de vida?</Title>
-        <TextInput
-          label="Ritmo de vida"
-          value={form.ritmo}
-          onChangeText={(text) => setForm((prev) => ({ ...prev, ritmo: text }))}
-          mode="outlined"
-        />
+        <Text>Ritmo de vida</Text>
+        <TextInput value={form.ritmo} onChangeText={(text) => setForm({ ...form, ritmo: text })} style={{ marginBottom: 16 }} />
 
-        <Title>¿Puedes cubrir gastos médicos y alimentación?</Title>
-        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, cubreGastos: value }))} value={form.cubreGastos}>
+        <Text>¿Puedes cubrir gastos de alimentación y salud?</Text>
+        <RadioButton.Group onValueChange={(val) => setForm({ ...form, cubreGastos: val })} value={form.cubreGastos}>
           <RadioButton.Item label="Sí" value="sí" />
           <RadioButton.Item label="No" value="no" />
         </RadioButton.Group>
 
-        <Title>¿Qué talla prefieres?</Title>
-        {opcionesTalla.map((talla) => (
+        <Text>Talla preferida</Text>
+        {opcionesTalla.map((op) => (
           <Checkbox.Item
-            key={talla}
-            label={talla}
-            status={form.tallaPreferida.includes(talla) ? 'checked' : 'unchecked'}
-            onPress={() => toggleItem('tallaPreferida', talla)}
+            key={op}
+            label={op}
+            status={form.tallaPreferida.includes(op) ? 'checked' : 'unchecked'}
+            onPress={() => toggleItem('tallaPreferida', op)}
           />
         ))}
 
-        <Title>¿Qué carácter prefieres?</Title>
-        {opcionesCaracter.map((caracter) => (
+        <Text>Carácter preferido</Text>
+        {opcionesCaracter.map((op) => (
           <Checkbox.Item
-            key={caracter}
-            label={caracter}
-            status={form.caracterPreferido.includes(caracter) ? 'checked' : 'unchecked'}
-            onPress={() => toggleItem('caracterPreferido', caracter)}
+            key={op}
+            label={op}
+            status={form.caracterPreferido.includes(op) ? 'checked' : 'unchecked'}
+            onPress={() => toggleItem('caracterPreferido', op)}
           />
         ))}
 
-        <Title>¿Aceptas seguimiento después de la adopción?</Title>
-        <RadioButton.Group onValueChange={(value) => setForm((prev) => ({ ...prev, aceptaSeguimiento: value }))} value={form.aceptaSeguimiento}>
+        <Text>¿Aceptas seguimiento?</Text>
+        <RadioButton.Group onValueChange={(val) => setForm({ ...form, aceptaSeguimiento: val })} value={form.aceptaSeguimiento}>
           <RadioButton.Item label="Sí" value="sí" />
           <RadioButton.Item label="No" value="no" />
         </RadioButton.Group>
-
-        <Title>Motivación para adoptar</Title>
-        <TextInput
-          label="Motivación"
-          value={form.motivacion}
-          multiline
-          numberOfLines={4}
-          onChangeText={(text) => setForm((prev) => ({ ...prev, motivacion: text }))}
-          mode="outlined"
-        />
 
         <Button mode="contained" style={{ marginTop: 20 }} onPress={handleSubmit}>
           Guardar y continuar

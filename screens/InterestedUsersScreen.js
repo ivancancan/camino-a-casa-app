@@ -1,3 +1,4 @@
+// src/screens/InterestedUsersScreen.js
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
@@ -5,15 +6,19 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  View,
 } from 'react-native';
 import { Card, Text, Button } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
+import { Image } from 'expo-image';
+import { useNavigation } from '@react-navigation/native';
 
 export default function InterestedUsersScreen({ route }) {
   const { petId } = route.params;
   const [interestedUsers, setInterestedUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
   const fetchInterested = async () => {
     setLoading(true);
@@ -63,29 +68,77 @@ export default function InterestedUsersScreen({ route }) {
     fetchInterested();
   }, []);
 
-  const renderItem = ({ item }) => (
-    <Card style={styles.card}>
-      <Card.Title
-        title={item.adopter_id.name || 'Adoptante'}
-        subtitle={`ID: ${item.adopter_id.id}`}
-      />
-      <Card.Actions style={styles.actions}>
-        <Button mode="contained" onPress={() => respondToInterest(item.adopter_id.id, true)}>
-          Aceptar
-        </Button>
-        <Button mode="outlined" onPress={() => respondToInterest(item.adopter_id.id, false)}>
-          Rechazar
-        </Button>
-      </Card.Actions>
-    </Card>
-  );
+  const renderItem = ({ item }) => {
+    const { adopter_id } = item;
+    const profile = adopter_id.adopter_profile || {};
+
+    const avatarUri = profile?.foto?.startsWith('http')
+      ? profile.foto
+      : 'https://via.placeholder.com/100x100.png?text=Foto';
+
+    return (
+      <Card style={styles.card}>
+        <Card.Title
+          title={adopter_id.name || 'Adoptante'}
+          subtitle={`ID: ${adopter_id.id}`}
+          left={() => (
+            <Image
+              source={avatarUri}
+              style={styles.avatar}
+              contentFit="cover"
+              transition={300}
+              cachePolicy="memory-disk"
+            />
+          )}
+        />
+        <Card.Content>
+          <Text style={styles.label}>Motivación:</Text>
+          <Text style={styles.value}>
+            {profile.motivacion || 'No proporcionada'}
+          </Text>
+          <Text style={styles.label}>Preferencias:</Text>
+          <Text style={styles.value}>
+            Talla: {profile.tallapreferida || 'N/A'}{'\n'}
+            Carácter: {profile.caracterpreferido || 'N/A'}{'\n'}
+            Tiene otras mascotas: {profile.tienemascotas ? 'Sí' : 'No'}{'\n'}
+            Vivienda: {profile.vivienda || 'No especificada'}
+          </Text>
+        </Card.Content>
+        <Card.Actions style={styles.actions}>
+          <Button
+            onPress={() =>
+              navigation.navigate('AdopterProfileDetail', {
+                adopter: adopter_id,
+              })
+            }
+          >
+            Ver perfil
+          </Button>
+          <Button
+            mode="contained"
+            onPress={() => respondToInterest(adopter_id.id, true)}
+          >
+            Aceptar
+          </Button>
+          <Button
+            mode="outlined"
+            onPress={() => respondToInterest(adopter_id.id, false)}
+          >
+            Rechazar
+          </Button>
+        </Card.Actions>
+      </Card>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" />
       ) : interestedUsers.length === 0 ? (
-        <Text style={styles.empty}>Nadie ha mostrado interés todavía.</Text>
+        <View style={styles.centeredContainer}>
+          <Text style={styles.emptyText}>🐾 Nadie ha mostrado interés todavía</Text>
+        </View>
       ) : (
         <FlatList
           data={interestedUsers}
@@ -100,6 +153,12 @@ export default function InterestedUsersScreen({ route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
   card: {
     marginBottom: 15,
     backgroundColor: '#fff',
@@ -111,10 +170,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingBottom: 10,
   },
-  empty: {
-    marginTop: 40,
-    fontSize: 16,
+  emptyText: {
+    fontSize: 18,
     textAlign: 'center',
-    color: '#666',
+    color: '#333',
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: 8,
+  },
+  label: {
+    marginTop: 8,
+    fontWeight: 'bold',
+  },
+  value: {
+    marginBottom: 8,
+    color: '#444',
   },
 });

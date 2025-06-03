@@ -1,19 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   ScrollView,
   StyleSheet,
-  Image,
   Modal,
   Pressable,
   Dimensions,
   SafeAreaView,
 } from 'react-native';
 import { Text, Title, Chip, Button, Divider } from 'react-native-paper';
+import { Image } from 'expo-image';
+import { getSession } from '../services/sessionService';
 
 export default function PetDetailScreen({ route, navigation }) {
   const { pet } = route.params;
   const [selectedImage, setSelectedImage] = useState(null);
+  const [canEdit, setCanEdit] = useState(false);
+
+  useEffect(() => {
+    const checkPermission = async () => {
+      try {
+        const { user } = await getSession();
+        const isGiver = user.role === 'giver';
+        const isOwner = user.id === pet.owner_id;
+        setCanEdit(isGiver && isOwner);
+      } catch (err) {
+        console.error('❌ Error al verificar permisos:', err);
+      }
+    };
+    checkPermission();
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -26,11 +42,16 @@ export default function PetDetailScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* Galería de fotos */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageRow}>
           {pet.fotos.map((uri, idx) => (
             <Pressable key={idx} onPress={() => setSelectedImage(uri)}>
-              <Image source={{ uri }} style={styles.image} />
+              <Image
+                source={{ uri }}
+                style={styles.image}
+                contentFit="cover"
+                transition={300}
+                cachePolicy="memory-disk"
+              />
             </Pressable>
           ))}
         </ScrollView>
@@ -69,19 +90,26 @@ export default function PetDetailScreen({ route, navigation }) {
           {pet.desparasitado && <Chip style={styles.chip}>Desparasitado</Chip>}
         </View>
 
-        <Button
-          mode="contained"
-          style={{ marginTop: 30 }}
-          onPress={() => navigation.navigate('GiverForm', { pet })}
-        >
-          Editar Mascota
-        </Button>
+        {canEdit && (
+          <Button
+            mode="contained"
+            style={{ marginTop: 30 }}
+            onPress={() => navigation.navigate('GiverForm', { pet })}
+          >
+            Editar Mascota
+          </Button>
+        )}
       </ScrollView>
 
-      {/* Modal para mostrar imagen ampliada */}
       <Modal visible={!!selectedImage} transparent>
         <Pressable style={styles.modalBackground} onPress={() => setSelectedImage(null)}>
-          <Image source={{ uri: selectedImage }} style={styles.fullImage} resizeMode="contain" />
+          <Image
+            source={{ uri: selectedImage }}
+            style={styles.fullImage}
+            contentFit="contain"
+            transition={300}
+            cachePolicy="memory-disk"
+          />
         </Pressable>
       </Modal>
     </SafeAreaView>
