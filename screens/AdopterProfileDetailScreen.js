@@ -1,5 +1,5 @@
 // src/screens/AdopterProfileDetailScreen.js
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,14 +8,27 @@ import {
 } from 'react-native';
 import { Text, Card, Title, Paragraph } from 'react-native-paper';
 import { Image } from 'expo-image';
+import { resolveAssetSource } from 'react-native';
 
-export default function AdopterProfileDetailScreen({ route }) {
+const AdopterProfileDetailScreen = React.memo(({ route }) => {
   const { adopter } = route.params;
   const profile = adopter?.adopter_profile || {};
 
-  const avatarUri = profile.foto?.startsWith('http')
-    ? profile.foto
-    : 'https://via.placeholder.com/200x200.png?text=Adoptante';
+  const avatarUri = useMemo(() => {
+    return profile.foto?.startsWith('http')
+      ? profile.foto
+      : resolveAssetSource(require('../assets/default-avatar.png')).uri;
+  }, [profile.foto]);
+
+  const motivacionText = profile.motivacion?.trim() || 'No proporcionada';
+  const tallaText = Array.isArray(profile.tallapreferida)
+    ? profile.tallapreferida.join(', ')
+    : 'No especificada';
+  const caracterText = Array.isArray(profile.caracterpreferido)
+    ? profile.caracterpreferido.join(', ')
+    : 'No especificado';
+  const tieneMascotasText = profile.tienemascotas === 'sí' ? 'Sí' : 'No';
+  const viviendaText = profile.vivienda?.trim() || 'No especificada';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -25,32 +38,30 @@ export default function AdopterProfileDetailScreen({ route }) {
             source={avatarUri}
             style={styles.avatar}
             contentFit="cover"
-            transition={300}
-            cachePolicy="memory-disk"
+            transition={200}
+            cachePolicy="disk"
           />
           <Card.Content>
             <Title style={styles.title}>{adopter.name || 'Adoptante'}</Title>
 
             <View style={styles.section}>
               <Text style={styles.label}>Motivación:</Text>
-              <Paragraph style={styles.value}>
-                {profile.motivacion?.trim() || 'No proporcionada'}
-              </Paragraph>
+              <Paragraph style={styles.value}>{motivacionText}</Paragraph>
             </View>
 
             <View style={styles.section}>
               <Text style={styles.label}>Preferencias:</Text>
               <Paragraph style={styles.value}>
-                Talla preferida: {Array.isArray(profile.tallapreferida) ? profile.tallapreferida.join(', ') : 'No especificada'}{'\n'}
-                Carácter preferido: {Array.isArray(profile.caracterpreferido) ? profile.caracterpreferido.join(', ') : 'No especificado'}
+                Talla preferida: {tallaText}{'\n'}
+                Carácter preferido: {caracterText}
               </Paragraph>
             </View>
 
             <View style={styles.section}>
               <Text style={styles.label}>Detalles del hogar:</Text>
               <Paragraph style={styles.value}>
-                Tiene otras mascotas: {profile.tienemascotas ? 'Sí' : 'No'}{'\n'}
-                Vivienda: {profile.vivienda?.trim() || 'No especificada'}
+                Tiene otras mascotas: {tieneMascotasText}{'\n'}
+                Vivienda: {viviendaText}
               </Paragraph>
             </View>
           </Card.Content>
@@ -58,7 +69,9 @@ export default function AdopterProfileDetailScreen({ route }) {
       </ScrollView>
     </SafeAreaView>
   );
-}
+});
+
+export default AdopterProfileDetailScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },

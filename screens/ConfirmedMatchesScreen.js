@@ -86,7 +86,6 @@ export default function ConfirmedMatchesScreen() {
           transition={300}
           cachePolicy="memory-disk"
         />
-
         <Card.Content>
           <View style={styles.row}>
             {adopterPhoto ? (
@@ -109,35 +108,32 @@ export default function ConfirmedMatchesScreen() {
               )}
             </View>
           </View>
-
           <View style={styles.petInfo}>
             <Text style={styles.petName}>Mascota: {pet.nombre || 'Sin nombre'}</Text>
           </View>
         </Card.Content>
-
         <Card.Actions>
           <Button
             mode="contained"
             onPress={async () => {
               try {
                 const { token } = await getSession();
-
-                const response = await fetch(`${API_BASE}/api/matches/create-conversation/${item.id}`, {
-                  method: 'POST',
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                  },
-                });
-
+                const response = await fetch(
+                  `${API_BASE}/api/matches/create-conversation/${item.id}`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      'Content-Type': 'application/json',
+                    },
+                  }
+                );
                 const result = await response.json();
                 const conversationId = result.conversation?.id || result.id;
-
                 if (!conversationId) {
                   console.error('No se pudo obtener conversationId');
                   return;
                 }
-
                 navigation.navigate('ChatScreen', {
                   conversationId,
                   adopterName,

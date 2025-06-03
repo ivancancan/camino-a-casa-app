@@ -18,7 +18,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Image } from 'expo-image'; // ✅ NUEVO
+import { Image } from 'expo-image';
+
+const PetCard = React.memo(({ pet, onPress }) => (
+  <Pressable onPress={onPress}>
+    <View style={styles.card}>
+      <Image
+        source={{ uri: pet?.fotos?.[0] || 'https://via.placeholder.com/300' }}
+        style={styles.image}
+        contentFit="cover"
+        transition={300}
+        cachePolicy="memory-disk"
+        placeholder={{ uri: 'https://via.placeholder.com/10/eeeeee/cccccc?text=.' }}
+      />
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.8)']}
+        style={styles.gradient}
+      />
+      <View style={styles.textOverlay}>
+        <Text style={styles.name}>{pet.nombre}</Text>
+        <Text style={styles.info}>{pet.edad} – {pet.talla}</Text>
+      </View>
+    </View>
+  </Pressable>
+));
 
 export default function SwipeScreen() {
   const [pets, setPets] = useState([]);
@@ -84,6 +107,15 @@ export default function SwipeScreen() {
   useEffect(() => {
     fetchSuggestions();
   }, []);
+
+  useEffect(() => {
+    // Prefetch de imágenes próximas
+    pets.slice(cardIndex + 1, cardIndex + 4).forEach((pet) => {
+      if (pet?.fotos?.[0]) {
+        Image.prefetch(pet.fotos[0]);
+      }
+    });
+  }, [cardIndex, pets]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -157,25 +189,10 @@ export default function SwipeScreen() {
             cards={pets}
             cardIndex={cardIndex}
             renderCard={(pet) => (
-              <Pressable onPress={() => navigation.navigate('PetDetail', { pet })}>
-                <View style={styles.card}>
-                  <Image
-                    source={{ uri: pet.fotos?.[0] || 'https://via.placeholder.com/300' }}
-                    style={styles.image}
-                    contentFit="cover"
-                    transition={300}
-                    cachePolicy="disk"
-                  />
-                  <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.8)']}
-                    style={styles.gradient}
-                  />
-                  <View style={styles.textOverlay}>
-                    <Text style={styles.name}>{pet.nombre}</Text>
-                    <Text style={styles.info}>{pet.edad} – {pet.talla}</Text>
-                  </View>
-                </View>
-              </Pressable>
+              <PetCard
+                pet={pet}
+                onPress={() => navigation.navigate('PetDetail', { pet })}
+              />
             )}
             onSwipedRight={handleSwipeRight}
             onSwipedLeft={handleSwipeLeft}

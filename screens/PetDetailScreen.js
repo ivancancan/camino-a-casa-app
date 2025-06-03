@@ -31,6 +31,9 @@ export default function PetDetailScreen({ route, navigation }) {
     checkPermission();
   }, []);
 
+  const openImage = (uri) => setSelectedImage(uri);
+  const closeModal = () => setSelectedImage(null);
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -43,14 +46,15 @@ export default function PetDetailScreen({ route, navigation }) {
         )}
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageRow}>
-          {pet.fotos.map((uri, idx) => (
-            <Pressable key={idx} onPress={() => setSelectedImage(uri)}>
+          {(pet.fotos || []).map((uri, idx) => (
+            <Pressable key={`${uri}-${idx}`} onPress={() => openImage(uri)}>
               <Image
                 source={{ uri }}
                 style={styles.image}
                 contentFit="cover"
                 transition={300}
                 cachePolicy="memory-disk"
+                placeholder={{ uri: 'https://via.placeholder.com/10/eeeeee/cccccc?text=.' }}
               />
             </Pressable>
           ))}
@@ -71,15 +75,15 @@ export default function PetDetailScreen({ route, navigation }) {
 
         <Text style={styles.label}>Carácter:</Text>
         <View style={styles.row}>
-          {pet.caracter?.map((c, i) => (
-            <Chip key={i} style={styles.chip}>{c}</Chip>
+          {(pet.caracter || []).map((c, i) => (
+            <Chip key={`caracter-${i}`} style={styles.chip}>{c}</Chip>
           ))}
         </View>
 
         <Text style={styles.label}>Convive con:</Text>
         <View style={styles.row}>
-          {pet.convive_con?.map((c, i) => (
-            <Chip key={i} style={styles.chip}>{c}</Chip>
+          {(pet.convive_con || []).map((c, i) => (
+            <Chip key={`convive-${i}`} style={styles.chip}>{c}</Chip>
           ))}
         </View>
 
@@ -101,15 +105,19 @@ export default function PetDetailScreen({ route, navigation }) {
         )}
       </ScrollView>
 
+      {/* Modal para ver imagen ampliada */}
       <Modal visible={!!selectedImage} transparent>
-        <Pressable style={styles.modalBackground} onPress={() => setSelectedImage(null)}>
-          <Image
-            source={{ uri: selectedImage }}
-            style={styles.fullImage}
-            contentFit="contain"
-            transition={300}
-            cachePolicy="memory-disk"
-          />
+        <Pressable style={styles.modalBackground} onPress={closeModal}>
+          {selectedImage && (
+            <Image
+              source={{ uri: selectedImage }}
+              style={styles.fullImage}
+              contentFit="contain"
+              transition={300}
+              cachePolicy="memory-disk"
+              placeholder={{ uri: 'https://via.placeholder.com/10/eeeeee/cccccc?text=.' }}
+            />
+          )}
         </Pressable>
       </Modal>
     </SafeAreaView>

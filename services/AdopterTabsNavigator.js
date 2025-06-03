@@ -15,8 +15,9 @@ export const UnreadCountContext = createContext({ unreadCount: 0, setUnreadCount
 
 const Tab = createBottomTabNavigator();
 
-const Badge = ({ count }) =>
-  count > 0 ? (
+const Badge = ({ count }) => {
+  if (!count || count <= 0) return null;
+  return (
     <View
       style={{
         position: 'absolute',
@@ -28,13 +29,15 @@ const Badge = ({ count }) =>
         height: 18,
         justifyContent: 'center',
         alignItems: 'center',
+        zIndex: 10,
       }}
     >
       <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
         {count > 9 ? '9+' : count}
       </Text>
     </View>
-  ) : null;
+  );
+};
 
 export default function AdopterTabsNavigator() {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -47,13 +50,10 @@ export default function AdopterTabsNavigator() {
 
       const headers = { Authorization: `Bearer ${session.token}` };
 
-      // Mensajes no leídos
-      const res1 = await fetch(`${API_BASE}/api/messages/unread-counts`, { headers });
+      const res1 = await fetch(`${API_BASE}/api/messages/unread-count`, { headers });
       const json1 = await res1.json();
-      const totalUnread = Object.values(json1.counts || {}).reduce((sum, n) => sum + n, 0);
-      setUnreadCount(totalUnread);
+      setUnreadCount(json1?.count || 0);
 
-      // Matches no vistos
       const res2 = await fetch(`${API_BASE}/api/matches/unseen-count`, { headers });
       const json2 = await res2.json();
       setUnseenMatches(json2.unseenCount || 0);
@@ -79,6 +79,11 @@ export default function AdopterTabsNavigator() {
           headerShown: false,
           tabBarActiveTintColor: '#6200ee',
           tabBarInactiveTintColor: '#555',
+          tabBarShowLabel: true,
+          tabBarLabelStyle: {
+            fontSize: 10,
+            marginBottom: 0,
+          },
           tabBarStyle: {
             position: 'absolute',
             bottom: 0,
@@ -91,13 +96,7 @@ export default function AdopterTabsNavigator() {
             borderTopWidth: 0.5,
             borderTopColor: '#ccc',
             elevation: 5,
-          },
-          tabBarLabelStyle: {
-            fontSize: 10,
-            marginBottom: 0,
-          },
-          tabBarIconStyle: {
-            marginTop: 0,
+            zIndex: 1,
           },
         }}
       >

@@ -2,56 +2,53 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  Button,
   StyleSheet,
-  ActivityIndicator,
   Alert,
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
+import { Button, IconButton } from 'react-native-paper';
+import { Image } from 'expo-image';
 import { getSession, clearSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import * as ImagePicker from 'expo-image-picker';
 import { v4 as uuidv4 } from 'uuid';
-import { IconButton } from 'react-native-paper';
-import { Image } from 'expo-image'; // ✅ Usamos expo-image
 
 export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
-  const [imageError, setImageError] = useState(false);
   const [loadingPhoto, setLoadingPhoto] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const [role, setRole] = useState(null);
 
   useEffect(() => {
     const loadUserAndProfile = async () => {
       const session = await getSession();
-      if (session?.user) {
-        setUser(session.user);
-        setRole(session.user.role);
+      if (!session?.user) return;
 
-        const endpoint =
-          session.user.role === 'giver'
-            ? '/api/giver/profile'
-            : '/api/adopter/profile';
+      setUser(session.user);
+      setRole(session.user.role);
 
-        try {
-          const res = await fetch(`${API_BASE}${endpoint}`, {
-            headers: { Authorization: `Bearer ${session.token}` },
-          });
+      const endpoint =
+        session.user.role === 'giver' ? '/api/giver/profile' : '/api/adopter/profile';
 
-          const data = await res.json();
+      try {
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+          headers: { Authorization: `Bearer ${session.token}` },
+        });
 
-          if (res.ok && data?.profile?.foto) {
-            setProfilePhoto(data.profile.foto);
-          }
-        } catch (err) {
-          console.error('❌ Error al cargar foto de perfil:', err);
-          Alert.alert('Error', 'No se pudo cargar la foto de perfil.');
-        } finally {
-          setLoadingPhoto(false);
+        const data = await res.json();
+
+        if (res.ok && data?.profile?.foto) {
+          setProfilePhoto(data.profile.foto);
         }
+      } catch (err) {
+        console.error('❌ Error al cargar foto de perfil:', err);
+        Alert.alert('Error', 'No se pudo cargar la foto de perfil.');
+      } finally {
+        setLoadingPhoto(false);
       }
     };
 
@@ -78,7 +75,6 @@ export default function ProfileScreen({ navigation }) {
       : await ImagePicker.launchImageLibraryAsync({ quality: 0.7 });
 
     if (result.canceled || !result.assets?.length) return;
-
     uploadImage(result.assets[0]);
   };
 
@@ -95,6 +91,7 @@ export default function ProfileScreen({ navigation }) {
 
     try {
       const { token } = await getSession();
+
       const uploadRes = await fetch(`${API_BASE}/api/${role}/upload-photo`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -167,7 +164,9 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {uploading && <ActivityIndicator style={{ marginBottom: 10 }} />}
+        {uploading || loadingPhoto ? (
+          <ActivityIndicator style={{ marginBottom: 20 }} />
+        ) : null}
 
         {user && (
           <>
@@ -176,7 +175,14 @@ export default function ProfileScreen({ navigation }) {
           </>
         )}
 
-        <Button title="Cerrar sesión" onPress={handleLogout} />
+        <Button
+          mode="outlined"
+          onPress={handleLogout}
+          style={{ marginTop: 20 }}
+          labelStyle={{ color: '#6200ee' }}
+        >
+          Cerrar sesión
+        </Button>
       </View>
     </SafeAreaView>
   );

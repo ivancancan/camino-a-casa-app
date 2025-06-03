@@ -53,6 +53,14 @@ export default function MessagesListScreen() {
   const renderItem = ({ item }) => {
     const { pet, otherUser, lastMessage, hasUnreadMessages } = item;
 
+    const avatarUri = otherUser.foto?.startsWith('http')
+      ? otherUser.foto
+      : 'https://via.placeholder.com/100x100.png?text=Usuario';
+
+    const petPhoto = pet.fotos?.[0]?.startsWith('http')
+      ? pet.fotos[0]
+      : 'https://via.placeholder.com/100x100.png?text=Mascota';
+
     return (
       <TouchableOpacity
         style={styles.card}
@@ -65,7 +73,7 @@ export default function MessagesListScreen() {
         }
       >
         <Image
-          source={{ uri: otherUser.foto }}
+          source={avatarUri}
           style={styles.avatar}
           contentFit="cover"
           transition={300}
@@ -73,28 +81,20 @@ export default function MessagesListScreen() {
         />
         <View style={{ flex: 1 }}>
           <View style={styles.row}>
-            <Text
-              style={[
-                styles.name,
-                hasUnreadMessages && styles.unreadText,
-              ]}
-            >
+            <Text style={[styles.name, hasUnreadMessages && styles.unreadText]}>
               {otherUser.nombre}
             </Text>
             {hasUnreadMessages && <View style={styles.unreadDot} />}
           </View>
           <Text
             numberOfLines={1}
-            style={[
-              styles.message,
-              hasUnreadMessages && styles.unreadText,
-            ]}
+            style={[styles.message, hasUnreadMessages && styles.unreadText]}
           >
             {lastMessage || 'Sin mensajes aún.'}
           </Text>
         </View>
         <Image
-          source={{ uri: pet.fotos?.[0] }}
+          source={petPhoto}
           style={styles.petImage}
           contentFit="cover"
           transition={300}
@@ -117,7 +117,7 @@ export default function MessagesListScreen() {
       ) : (
         <FlatList
           data={conversations}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

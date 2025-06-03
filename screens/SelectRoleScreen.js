@@ -16,31 +16,41 @@ import Animated, {
 import { updateRoles } from '../services/authService';
 import { saveSession, getSession } from '../services/sessionService';
 
+const RoleCard = ({ icon, label, selected, onPress, scale }) => {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <TouchableWithoutFeedback onPress={onPress}>
+      <Animated.View
+        style={[
+          styles.card,
+          animatedStyle,
+          selected && styles.cardSelected,
+        ]}
+      >
+        <MaterialCommunityIcons name={icon} size={40} color="#333" />
+        <Text style={styles.cardText}>{label}</Text>
+      </Animated.View>
+    </TouchableWithoutFeedback>
+  );
+};
+
 export default function SelectRoleScreen({ navigation }) {
   const [selectedRoles, setSelectedRoles] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const adopterScale = useSharedValue(1);
-  const publisherScale = useSharedValue(1);
+  const giverScale = useSharedValue(1);
 
-  const adopterAnim = useAnimatedStyle(() => ({
-    transform: [{ scale: adopterScale.value }],
-  }));
-
-  const publisherAnim = useAnimatedStyle(() => ({
-    transform: [{ scale: publisherScale.value }],
-  }));
-
-  const toggleRole = (role) => {
+  const toggleRole = (role, scaleRef) => {
     setSelectedRoles((prev) =>
-      prev.includes(role)
-        ? prev.filter((r) => r !== role)
-        : [...prev, role]
+      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
     );
 
-    const scale = role === 'adoptante' ? adopterScale : publisherScale;
-    scale.value = withSpring(1.1, {}, () => {
-      scale.value = withSpring(1);
+    scaleRef.value = withSpring(1.1, {}, () => {
+      scaleRef.value = withSpring(1);
     });
   };
 
@@ -50,15 +60,14 @@ export default function SelectRoleScreen({ navigation }) {
       return;
     }
 
-    const backendRoles = selectedRoles.map((role) =>
-      role === 'adoptante' ? 'adopter' : 'giver'
+    const backendRoles = selectedRoles.map((r) =>
+      r === 'adoptante' ? 'adopter' : 'giver'
     );
 
     try {
       setLoading(true);
       const { token, user } = await getSession();
       const response = await updateRoles(user.id, backendRoles, token);
-      console.log('📝 Rol después de update:', response);
 
       if (!response || typeof response !== 'object') {
         Alert.alert('Error', 'Respuesta inesperada del servidor');
@@ -70,25 +79,15 @@ export default function SelectRoleScreen({ navigation }) {
         return;
       }
 
-      if (!response.user) {
-        Alert.alert('Error', 'Datos del usuario no recibidos');
-        return;
-      }
-
-      const fixedUser = {
+      const updatedUser = {
         ...response.user,
         role: response.user.role || response.user.roles?.[0] || null,
       };
 
-      await saveSession(token, fixedUser);
+      await saveSession(token, updatedUser);
 
-      if (fixedUser.role === 'adopter') {
-        navigation.navigate('AdopterProfile');
-      } else if (fixedUser.role === 'giver') {
-        navigation.navigate('GiverHome');
-      } else {
-        navigation.navigate('GiverHome');
-      }
+      const route = updatedUser.role === 'adopter' ? 'AdopterProfile' : 'GiverHome';
+      navigation.navigate(route);
     } catch (err) {
       console.error('❌ Error en selección de rol:', err);
       Alert.alert('Error', err.message || 'No se pudieron guardar los roles');
@@ -104,31 +103,20 @@ export default function SelectRoleScreen({ navigation }) {
         <Text style={styles.subtitle}>Selecciona una o ambas opciones:</Text>
 
         <View style={styles.options}>
-          <TouchableWithoutFeedback onPress={() => toggleRole('adoptante')}>
-            <Animated.View
-              style={[
-                styles.card,
-                adopterAnim,
-                selectedRoles.includes('adoptante') && styles.cardSelected,
-              ]}
-            >
-              <MaterialCommunityIcons name="paw" size={40} color="#333" />
-              <Text style={styles.cardText}>Adoptar</Text>
-            </Animated.View>
-          </TouchableWithoutFeedback>
-
-          <TouchableWithoutFeedback onPress={() => toggleRole('publicador')}>
-            <Animated.View
-              style={[
-                styles.card,
-                publisherAnim,
-                selectedRoles.includes('publicador') && styles.cardSelected,
-              ]}
-            >
-              <MaterialCommunityIcons name="hand-heart" size={40} color="#333" />
-              <Text style={styles.cardText}>Dar en adopción</Text>
-            </Animated.View>
-          </TouchableWithoutFeedback>
+          <RoleCard
+            icon="paw"
+            label="Adoptar"
+            selected={selectedRoles.includes('adoptante')}
+            onPress={() => toggleRole('adoptante', adopterScale)}
+            scale={adopterScale}
+          />
+          <RoleCard
+            icon="hand-heart"
+            label="Dar en adopción"
+            selected={selectedRoles.includes('publicador')}
+            onPress={() => toggleRole('publicador', giverScale)}
+            scale={giverScale}
+          />
         </View>
 
         <Button

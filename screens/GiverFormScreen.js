@@ -175,8 +175,8 @@ export default function GiverFormScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
           <Title style={styles.title}>Formulario de Adopción</Title>
-
           <Divider style={styles.divider} />
+
           <TextInput label="Nombre" value={form.nombre} onChangeText={(text) => setForm({ ...form, nombre: text })} style={styles.input} />
 
           <Text style={styles.label}>Sexo</Text>

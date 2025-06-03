@@ -44,6 +44,7 @@ export default function AdopterProfileScreen({ navigation }) {
         const res = await fetch(`${API_BASE}/api/adopter/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         const text = await res.text();
         let data;
         try {
@@ -186,11 +187,7 @@ export default function AdopterProfileScreen({ navigation }) {
         <Title style={styles.title}>Perfil del Adoptante</Title>
 
         <Image
-          source={
-            photoPreview
-              ? photoPreview
-              : require('../assets/default-avatar.png')
-          }
+          source={photoPreview || require('../assets/default-avatar.png')}
           style={styles.imagePreview}
           contentFit="cover"
           transition={300}
@@ -213,8 +210,15 @@ export default function AdopterProfileScreen({ navigation }) {
           </Button>
         </View>
 
-        {/* Campos del formulario */}
-        <TextInput label="¿Por qué quieres adoptar?" value={form.motivacion} onChangeText={(text) => setForm({ ...form, motivacion: text })} multiline style={{ marginBottom: 16 }} />
+        <TextInput
+          label="¿Por qué quieres adoptar?"
+          value={form.motivacion}
+          onChangeText={(text) => setForm({ ...form, motivacion: text })}
+          multiline
+          style={{ marginBottom: 16 }}
+        />
+
+        {/* Aquí siguen todos los radio y checkbox igual que en tu código anterior... */}
 
         <Text>¿Tienes otras mascotas?</Text>
         <RadioButton.Group onValueChange={(val) => setForm({ ...form, tieneMascotas: val })} value={form.tieneMascotas}>

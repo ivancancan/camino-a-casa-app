@@ -9,7 +9,7 @@ import {
 import { TextInput, Button } from 'react-native-paper';
 import { login } from '../services/authService';
 import { saveSession } from '../services/sessionService';
-import { Image, ImageBackground } from 'expo-image'; // ✅ nuevo import
+import { Image, ImageBackground } from 'expo-image';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -56,7 +56,7 @@ export default function LoginScreen({ navigation }) {
   return (
     <ImageBackground
       source={require('../assets/login-bg.jpg')}
-      style={[styles.background, { backgroundColor: '#f8f2ff' }]}
+      style={styles.background}
       contentFit="cover"
       transition={300}
       cachePolicy="memory-disk"
@@ -120,6 +120,7 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    backgroundColor: '#f8f2ff',
   },
   container: {
     flex: 1,

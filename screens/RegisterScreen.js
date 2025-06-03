@@ -10,16 +10,24 @@ import {
 import { TextInput, Button } from 'react-native-paper';
 import { register } from '../services/authService';
 import { saveSession } from '../services/sessionService';
-import { Image } from 'expo-image'; // ✅ Usamos expo-image
+import { Image, ImageBackground } from 'expo-image'; // ✅ mantenemos consistente con login
 
 export default function RegisterScreen({ navigation }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [loading, setLoading] = useState(false);
 
+  const handleChange = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleRegister = async () => {
+    const { name, email, password, confirmPassword } = form;
+
     if (password !== confirmPassword) {
       alert('Las contraseñas no coinciden');
       return;
@@ -28,6 +36,7 @@ export default function RegisterScreen({ navigation }) {
     try {
       setLoading(true);
       const response = await register(name, email, password);
+
       if (!response || typeof response !== 'object') {
         alert('Respuesta inesperada del servidor');
         return;
@@ -42,7 +51,7 @@ export default function RegisterScreen({ navigation }) {
       }
 
       await saveSession(response.token, response.user);
-      navigation.navigate('SelectRole');
+      navigation.reset({ index: 0, routes: [{ name: 'SelectRole' }] });
     } catch (error) {
       console.error('❌ Error inesperado al registrar:', error);
       alert(error.message || 'No se pudo registrar');
@@ -52,15 +61,13 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.backgroundWrapper}>
-      <Image
-        source={require('../assets/login-bg.jpg')}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-        transition={300}
-        cachePolicy="memory-disk"
-      />
-
+    <ImageBackground
+      source={require('../assets/login-bg.jpg')}
+      style={styles.background}
+      contentFit="cover"
+      transition={300}
+      cachePolicy="memory-disk"
+    >
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -77,15 +84,15 @@ export default function RegisterScreen({ navigation }) {
 
             <TextInput
               label="Nombre completo"
-              value={name}
-              onChangeText={setName}
+              value={form.name}
+              onChangeText={(text) => handleChange('name', text)}
               mode="outlined"
               style={styles.input}
             />
             <TextInput
               label="Correo electrónico"
-              value={email}
-              onChangeText={setEmail}
+              value={form.email}
+              onChangeText={(text) => handleChange('email', text)}
               mode="outlined"
               style={styles.input}
               keyboardType="email-address"
@@ -93,16 +100,16 @@ export default function RegisterScreen({ navigation }) {
             />
             <TextInput
               label="Contraseña"
-              value={password}
-              onChangeText={setPassword}
+              value={form.password}
+              onChangeText={(text) => handleChange('password', text)}
               secureTextEntry
               mode="outlined"
               style={styles.input}
             />
             <TextInput
               label="Confirmar contraseña"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              value={form.confirmPassword}
+              onChangeText={(text) => handleChange('confirmPassword', text)}
               secureTextEntry
               mode="outlined"
               style={styles.input}
@@ -125,14 +132,14 @@ export default function RegisterScreen({ navigation }) {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  backgroundWrapper: {
+  background: {
     flex: 1,
-    backgroundColor: '#f8f2ff', // 🎯 color base detrás del fondo
+    backgroundColor: '#f8f2ff',
   },
   container: {
     flex: 1,

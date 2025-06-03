@@ -1,4 +1,3 @@
-// src/screens/InterestedUsersScreen.js
 import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
@@ -83,7 +82,7 @@ export default function InterestedUsersScreen({ route }) {
           subtitle={`ID: ${adopter_id.id}`}
           left={() => (
             <Image
-              source={avatarUri}
+              source={{ uri: avatarUri }}
               style={styles.avatar}
               contentFit="cover"
               transition={300}

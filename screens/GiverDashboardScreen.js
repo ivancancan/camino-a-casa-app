@@ -11,7 +11,7 @@ import {
 import { Text, Card, IconButton } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
-import { Image } from 'expo-image'; // ✅ NUEVO
+import { Image } from 'expo-image';
 
 export default function GiverDashboardScreen({ navigation }) {
   const [pets, setPets] = useState([]);
@@ -26,7 +26,7 @@ export default function GiverDashboardScreen({ navigation }) {
       });
       const data = await response.json();
       if (response.ok) {
-        setPets(data.pets || data);
+        setPets(data.pets || []);
       } else {
         Alert.alert('Error', data.error || 'No se pudieron cargar tus mascotas');
       }
@@ -136,12 +136,6 @@ export default function GiverDashboardScreen({ navigation }) {
     );
   };
 
-  const resolveImage = (foto) => {
-    if (!foto) return 'https://via.placeholder.com/300x300.png?text=Mascota';
-    if (foto.startsWith('http') || foto.startsWith('data:image')) return foto;
-    return `data:image/jpeg;base64,${foto}`;
-  };
-
   const renderItem = ({ item }) => (
     <Card
       key={item.id}
@@ -150,7 +144,7 @@ export default function GiverDashboardScreen({ navigation }) {
     >
       <View style={styles.imageContainer}>
         <Image
-          source={resolveImage(item.fotos?.[0])}
+          source={item.fotos?.[0] || 'https://via.placeholder.com/300x300.png?text=Mascota'}
           style={styles.image}
           contentFit="cover"
           transition={300}
@@ -171,27 +165,12 @@ export default function GiverDashboardScreen({ navigation }) {
           <Text style={styles.cardSubtitle}>{`${item.edad} años • ${item.talla}`}</Text>
         </View>
         {item.status === 'adoptado' ? (
-          <>
-            <Text style={{ color: 'green', fontWeight: 'bold', marginRight: 10 }}>
-              Adoptado
-            </Text>
-            <TouchableOpacity
-              onPress={() => handleMarkAsAvailable(item.id)}
-              style={{ marginRight: 10 }}
-            >
-              <Text style={{ color: '#007AFF', fontWeight: 'bold' }}>
-                Marcar como Disponible
-              </Text>
-            </TouchableOpacity>
-          </>
+          <TouchableOpacity onPress={() => handleMarkAsAvailable(item.id)}>
+            <Text style={styles.actionText}>Marcar como Disponible</Text>
+          </TouchableOpacity>
         ) : (
-          <TouchableOpacity
-            onPress={() => handleMarkAsAdopted(item.id)}
-            style={{ marginRight: 10 }}
-          >
-            <Text style={{ color: '#007AFF', fontWeight: 'bold' }}>
-              Marcar como Adoptado
-            </Text>
+          <TouchableOpacity onPress={() => handleMarkAsAdopted(item.id)}>
+            <Text style={styles.actionText}>Marcar como Adoptado</Text>
           </TouchableOpacity>
         )}
         <IconButton
@@ -225,9 +204,7 @@ export default function GiverDashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   flatListContent: {
     paddingBottom: 120,
     paddingHorizontal: 20,
@@ -289,5 +266,10 @@ const styles = StyleSheet.create({
   cardSubtitle: {
     fontSize: 14,
     color: '#555',
+  },
+  actionText: {
+    color: '#007AFF',
+    fontWeight: 'bold',
+    marginRight: 10,
   },
 });

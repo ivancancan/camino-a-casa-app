@@ -38,17 +38,13 @@ export default function ChatScreen() {
       const markAndFetch = async () => {
         try {
           const session = await getSession();
-          console.log('➡️ PATCH /mark-read/', conversationId);
 
-          const response = await fetch(`${API_BASE}/api/messages/conversations/${conversationId}/mark-read`, {
+          await fetch(`${API_BASE}/api/messages/conversations/${conversationId}/mark-read`, {
             method: 'PATCH',
             headers: {
               Authorization: `Bearer ${session.token}`,
             },
           });
-
-          const result = await response.json();
-          console.log('📬 Respuesta mark-read:', result);
 
           fetchMessages(session.token);
         } catch (err) {
@@ -112,16 +108,21 @@ export default function ChatScreen() {
       );
     }
 
+    const isMyMessage = item.sender_id === userId;
+
     return (
       <View
         style={[
           styles.messageBubble,
-          item.sender_id === userId ? styles.sent : styles.received,
+          isMyMessage ? styles.sent : styles.received,
         ]}
       >
         <Text style={styles.messageText}>{item.message}</Text>
         <Text style={styles.timestamp}>
-          {new Date(item.created_at).toLocaleTimeString()}
+          {new Date(item.created_at).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
         </Text>
       </View>
     );
@@ -139,6 +140,7 @@ export default function ChatScreen() {
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 10 }}
+          inverted
         />
         <View style={styles.inputContainer}>
           <TextInput
@@ -172,6 +174,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginRight: 8,
     fontSize: 16,
+    backgroundColor: '#fff',
   },
   messageBubble: {
     padding: 12,
@@ -184,7 +187,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   received: {
-    backgroundColor: '#e0bbff',
+    backgroundColor: '#e6d3f5',
     alignSelf: 'flex-start',
   },
   systemMessage: {
