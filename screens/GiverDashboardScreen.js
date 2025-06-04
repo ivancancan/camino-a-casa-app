@@ -139,7 +139,10 @@ export default function GiverDashboardScreen({ navigation }) {
   const renderItem = ({ item }) => (
     <Card
       key={item.id}
-      style={styles.card}
+      style={[
+        styles.card,
+        item.status === 'adoptado' && styles.cardAdoptedBorder,
+      ]}
       onPress={() => navigation.navigate('PetDetail', { pet: item })}
     >
       <View style={styles.imageContainer}>
@@ -150,6 +153,11 @@ export default function GiverDashboardScreen({ navigation }) {
           transition={300}
           cachePolicy="memory-disk"
         />
+        {item.status === 'adoptado' && (
+          <View style={styles.adoptedBanner}>
+            <Text style={styles.adoptedText}>ADOPTADO</Text>
+          </View>
+        )}
         {item.interesados > 0 && (
           <TouchableOpacity
             onPress={() => navigation.navigate('InterestedUsers', { petId: item.id })}
@@ -166,11 +174,11 @@ export default function GiverDashboardScreen({ navigation }) {
         </View>
         {item.status === 'adoptado' ? (
           <TouchableOpacity onPress={() => handleMarkAsAvailable(item.id)}>
-            <Text style={styles.actionText}>Marcar como Disponible</Text>
+            <Text style={[styles.actionText, { color: '#000' }]}>Marcar como Disponible</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={() => handleMarkAsAdopted(item.id)}>
-            <Text style={styles.actionText}>Marcar como Adoptado</Text>
+            <Text style={[styles.actionText, { color: '#007AFF' }]}>Marcar como Adoptado</Text>
           </TouchableOpacity>
         )}
         <IconButton
@@ -216,6 +224,10 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderRadius: 10,
   },
+  cardAdoptedBorder: {
+    borderWidth: 2,
+    borderColor: 'green',
+  },
   noPetsText: {
     marginTop: 40,
     fontSize: 18,
@@ -249,6 +261,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
+  adoptedBanner: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    backgroundColor: 'rgba(0, 128, 0, 0.7)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 5,
+  },
+  adoptedText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
   cardContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -268,7 +294,6 @@ const styles = StyleSheet.create({
     color: '#555',
   },
   actionText: {
-    color: '#007AFF',
     fontWeight: 'bold',
     marginRight: 10,
   },

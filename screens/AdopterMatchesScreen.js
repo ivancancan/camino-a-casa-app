@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
@@ -12,6 +12,9 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { API_BASE } from '../services/Api';
 import { getSession } from '../services/sessionService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const MATCHES_CACHE_KEY = 'cached_adopter_matches';
 
 export default function AdopterMatchesScreen() {
   const [matches, setMatches] = useState([]);
@@ -22,22 +25,34 @@ export default function AdopterMatchesScreen() {
   const fetchMatches = async () => {
     setLoading(true);
     try {
+      const cached = await AsyncStorage.getItem(MATCHES_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          setMatches(parsed);
+          setLoading(false);
+        }
+      }
+
       const session = await getSession();
       const res = await fetch(`${API_BASE}/api/matches/adopter/confirmed`, {
         headers: { Authorization: `Bearer ${session.token}` },
       });
       const data = await res.json();
-      setMatches(data || []);
+      const fresh = Array.isArray(data) ? data : [];
+      setMatches(fresh);
+      await AsyncStorage.setItem(MATCHES_CACHE_KEY, JSON.stringify(fresh));
     } catch (err) {
       console.error('❌ Error en fetchMatches:', err.message);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchMatches().then(() => setRefreshing(false));
+    fetchMatches();
   }, []);
 
   useEffect(() => {
@@ -170,7 +185,9 @@ export default function AdopterMatchesScreen() {
   if (!matches.length) {
     return (
       <SafeAreaView style={styles.noMatchesContainer}>
-        <Text style={styles.noMoreText}>🐾 Aún no tienes matches confirmados</Text>
+        <Text style={styles.noMoreText}>
+          🐾 Aún no tienes matches confirmados
+        </Text>
       </SafeAreaView>
     );
   }

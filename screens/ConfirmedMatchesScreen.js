@@ -11,6 +11,9 @@ import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Image } from 'expo-image';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const MATCHES_CACHE_KEY = 'cached_giver_matches';
 
 export default function ConfirmedMatchesScreen() {
   const [matches, setMatches] = useState([]);
@@ -27,13 +30,24 @@ export default function ConfirmedMatchesScreen() {
   const fetchMatches = async () => {
     setLoading(true);
     try {
+      const cached = await AsyncStorage.getItem(MATCHES_CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          setMatches(parsed);
+          setLoading(false);
+        }
+      }
+
       const { token } = await getSession();
       const res = await fetch(`${API_BASE}/api/matches/giver/confirmed`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (res.ok) {
-        setMatches(data.matches || []);
+        const fresh = data.matches || [];
+        setMatches(fresh);
+        await AsyncStorage.setItem(MATCHES_CACHE_KEY, JSON.stringify(fresh));
       } else {
         console.error('Error:', data.error);
       }
@@ -79,13 +93,15 @@ export default function ConfirmedMatchesScreen() {
 
     return (
       <Card style={styles.card} elevation={4}>
-        <Image
-          source={petPhoto}
-          style={styles.petImage}
-          contentFit="cover"
-          transition={300}
-          cachePolicy="memory-disk"
-        />
+        <View style={styles.imageWrapper}>
+          <Image
+            source={petPhoto}
+            style={styles.petImage}
+            contentFit="cover"
+            transition={300}
+            cachePolicy="memory-disk"
+          />
+        </View>
         <Card.Content>
           <View style={styles.row}>
             {adopterPhoto ? (
@@ -162,7 +178,9 @@ export default function ConfirmedMatchesScreen() {
         ListEmptyComponent={
           !loading && (
             <View style={styles.noMatchesContainer}>
-              <Text style={styles.noMoreText}>🐾 Aún no tienes matches confirmados</Text>
+<Text style={styles.noMoreText}>
+  🐾 Aún no tienes matches confirmados{"\n"}Publica o activa mascotas para recibir interesados
+</Text>
             </View>
           )
         }
@@ -174,7 +192,12 @@ export default function ConfirmedMatchesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  card: { marginBottom: 16, borderRadius: 12, overflow: 'hidden' },
+  card: { marginBottom: 16, borderRadius: 12 },
+  imageWrapper: {
+    overflow: 'hidden',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
   petImage: { height: 200, width: '100%' },
   row: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
   avatar: {

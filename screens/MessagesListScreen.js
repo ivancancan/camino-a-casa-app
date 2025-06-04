@@ -8,10 +8,18 @@ import {
   RefreshControl,
   SafeAreaView,
 } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import { Image } from 'expo-image';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const CONV_CACHE_KEY = 'cached_conversations';
+
+const cleanUrl = (url) => {
+  if (!url) return '';
+  return url.split('?')[0];
+};
 
 export default function MessagesListScreen() {
   const [conversations, setConversations] = useState([]);
@@ -20,17 +28,25 @@ export default function MessagesListScreen() {
   const navigation = useNavigation();
 
   const fetchConversations = async () => {
-    setLoading(true);
     const session = await getSession();
     const token = session?.token;
 
     try {
-      const res = await fetch(`${API_BASE}/api/messages/conversations`, {
+      const res = await fetch(`${API_BASE}/api/messages/user/conversations`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`❌ Error del backend (${res.status}):`, errorText);
+        return;
+      }
+
       const json = await res.json();
-      setConversations(json.data || []);
+      const fresh = Array.isArray(json.data) ? json.data : [];
+
+      setConversations(fresh);
+      await AsyncStorage.setItem(CONV_CACHE_KEY, JSON.stringify(fresh));
     } catch (err) {
       console.error('❌ Error fetching conversations:', err);
     } finally {
@@ -39,11 +55,28 @@ export default function MessagesListScreen() {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
+  // ⚡ Carga inicial: primero cache y luego fetch
+  useEffect(() => {
+    const loadFromCacheThenFetch = async () => {
+      try {
+        const cached = await AsyncStorage.getItem(CONV_CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) {
+            setConversations(parsed);
+            setLoading(false); // Evita mostrar loader si hay cache
+          }
+        }
+      } catch (e) {
+        console.warn('⚠️ Error leyendo cache local', e);
+      }
+
+      // Luego busca datos frescos
       fetchConversations();
-    }, [])
-  );
+    };
+
+    loadFromCacheThenFetch();
+  }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -53,13 +86,17 @@ export default function MessagesListScreen() {
   const renderItem = ({ item }) => {
     const { pet, otherUser, lastMessage, hasUnreadMessages } = item;
 
-    const avatarUri = otherUser.foto?.startsWith('http')
-      ? otherUser.foto
-      : 'https://via.placeholder.com/100x100.png?text=Usuario';
+    const avatarUri = cleanUrl(
+      otherUser.foto?.startsWith('http')
+        ? otherUser.foto
+        : 'https://via.placeholder.com/100x100.png?text=Usuario'
+    );
 
-    const petPhoto = pet.fotos?.[0]?.startsWith('http')
-      ? pet.fotos[0]
-      : 'https://via.placeholder.com/100x100.png?text=Mascota';
+    const petPhoto = cleanUrl(
+      pet.fotos?.[0]?.startsWith('http')
+        ? pet.fotos[0]
+        : 'https://via.placeholder.com/100x100.png?text=Mascota'
+    );
 
     return (
       <TouchableOpacity
@@ -73,11 +110,11 @@ export default function MessagesListScreen() {
         }
       >
         <Image
-          source={avatarUri}
+          source={{ uri: avatarUri }}
           style={styles.avatar}
           contentFit="cover"
           transition={300}
-          cachePolicy="memory-disk"
+          cachePolicy="disk"
         />
         <View style={{ flex: 1 }}>
           <View style={styles.row}>
@@ -94,11 +131,11 @@ export default function MessagesListScreen() {
           </Text>
         </View>
         <Image
-          source={petPhoto}
+          source={{ uri: petPhoto }}
           style={styles.petImage}
           contentFit="cover"
           transition={300}
-          cachePolicy="memory-disk"
+          cachePolicy="disk"
         />
       </TouchableOpacity>
     );
@@ -112,7 +149,10 @@ export default function MessagesListScreen() {
         </View>
       ) : conversations.length === 0 ? (
         <View style={styles.centeredContainer}>
-          <Text style={styles.noMessagesText}>🐾 No tienes conversaciones activas aún</Text>
+          <Text style={styles.noMessagesText}>
+            🐾 No tienes conversaciones activas aún{"\n"}
+            Empieza adoptando o publicando una mascota
+          </Text>
         </View>
       ) : (
         <FlatList

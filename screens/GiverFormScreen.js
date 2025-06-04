@@ -22,7 +22,7 @@ import {
 } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import DraggableFlatList from 'react-native-draggable-flatlist';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import { Image } from 'expo-image';
@@ -74,6 +74,27 @@ export default function GiverFormScreen() {
       });
     }
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!petToEdit) {
+        setForm({
+          nombre: '',
+          sexo: '',
+          edad: '',
+          talla: '',
+          caracter: [],
+          conviveCon: [],
+          vacunado: false,
+          esterilizado: false,
+          desparasitado: false,
+          telefono: '',
+          fotos: [],
+          descripcion: '',
+        });
+      }
+    }, [route.key])
+  );
 
   const toggleItem = (field, value) => {
     setForm((prev) => {

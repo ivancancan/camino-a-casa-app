@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   SafeAreaView,
   View,
@@ -23,6 +23,7 @@ export default function ChatScreen() {
   const [newMessage, setNewMessage] = useState('');
   const [userId, setUserId] = useState(null);
   const [token, setToken] = useState(null);
+  const flatListRef = useRef(null); // Ref para scroll automático
 
   useEffect(() => {
     const initSession = async () => {
@@ -39,8 +40,8 @@ export default function ChatScreen() {
         try {
           const session = await getSession();
 
-          await fetch(`${API_BASE}/api/messages/conversations/${conversationId}/mark-read`, {
-            method: 'PATCH',
+          await fetch(`${API_BASE}/api/messages/${conversationId}/mark-read`, {
+            method: 'PUT',
             headers: {
               Authorization: `Bearer ${session.token}`,
             },
@@ -64,13 +65,18 @@ export default function ChatScreen() {
 
   const fetchMessages = async (tokenOverride = token) => {
     try {
-      const res = await fetch(`${API_BASE}/api/messages/conversations/${conversationId}/messages`, {
+      const res = await fetch(`${API_BASE}/api/messages/${conversationId}`, {
         headers: {
           Authorization: `Bearer ${tokenOverride}`,
         },
       });
       const data = await res.json();
       setMessages(data);
+
+      // Esperar render y luego hacer scroll al final
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: false });
+      }, 100);
     } catch (err) {
       console.error('Error al cargar mensajes:', err);
     }
@@ -93,7 +99,7 @@ export default function ChatScreen() {
       });
 
       setNewMessage('');
-      fetchMessages();
+      fetchMessages(); // Scroll automático ya incluido
     } catch (err) {
       console.error('Error al enviar mensaje:', err);
     }
@@ -136,11 +142,11 @@ export default function ChatScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
       >
         <FlatList
+          ref={flatListRef}
           data={messages}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ padding: 10 }}
-          inverted
         />
         <View style={styles.inputContainer}>
           <TextInput
