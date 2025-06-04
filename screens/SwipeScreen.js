@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -6,16 +6,13 @@ import {
   Animated,
   Text as RNText,
   Alert,
-  ScrollView,
-  RefreshControl,
   Pressable,
 } from 'react-native';
 import Swiper from 'react-native-deck-swiper';
 import { Text } from 'react-native-paper';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -47,19 +44,13 @@ export default function SwipeScreen() {
   const [pets, setPets] = useState([]);
   const [cardIndex, setCardIndex] = useState(0);
   const [feedback, setFeedback] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
   const swiperRef = useRef(null);
 
-  const fetchSuggestions = async () => {
+  const fetchSuggestions = useCallback(async () => {
     const session = await getSession();
-
-    if (!session) {
-      Alert.alert('Sesión expirada', 'Por favor inicia sesión de nuevo.');
-      return;
-    }
-
+    if (!session) return Alert.alert('Sesión expirada', 'Por favor inicia sesión de nuevo.');
     const { token } = session;
 
     try {
@@ -102,28 +93,21 @@ export default function SwipeScreen() {
       console.error('❌ Error de red al cargar sugerencias:', err);
       Alert.alert('Error', 'Fallo al conectar con el servidor');
     }
-  };
-
-  useEffect(() => {
-    fetchSuggestions();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchSuggestions();
+    }, [fetchSuggestions])
+  );
+
   useEffect(() => {
-    // Prefetch de imágenes próximas
     pets.slice(cardIndex + 1, cardIndex + 4).forEach((pet) => {
-      if (pet?.fotos?.[0]) {
-        Image.prefetch(pet.fotos[0]);
-      }
+      if (pet?.fotos?.[0]) Image.prefetch(pet.fotos[0]);
     });
   }, [cardIndex, pets]);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchSuggestions();
-    setRefreshing(false);
-  };
-
-  const showFeedback = (message) => {
+  const showFeedback = useCallback((message) => {
     setFeedback(message);
     fadeAnim.setValue(1);
     Animated.timing(fadeAnim, {
@@ -131,59 +115,44 @@ export default function SwipeScreen() {
       duration: 1000,
       useNativeDriver: true,
     }).start();
-  };
+  }, [fadeAnim]);
 
-  const registerSwipe = async (petId, interested) => {
+  const registerSwipe = useCallback(async (petId, interested) => {
     const session = await getSession();
     if (!session) return;
-
     const { token, user } = session;
-
     try {
-      const response = await fetch(`${API_BASE}/api/swipes`, {
+      await fetch(`${API_BASE}/api/swipes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          adopterId: user.id,
-          petId,
-          interested,
-        }),
+        body: JSON.stringify({ adopterId: user.id, petId, interested }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error al registrar swipe:', errorData);
-      } else {
-        const respData = await response.json();
-        console.log('Swipe registrado:', respData);
-      }
     } catch (err) {
       console.error('❌ Error al registrar swipe:', err);
     }
-  };
+  }, []);
 
-  const handleSwipeRight = (index) => {
+  const handleSwipeRight = useCallback((index) => {
     if (!pets[index]) return;
     showFeedback('💚 Me interesa');
     registerSwipe(pets[index].id, true);
-  };
+  }, [pets, registerSwipe, showFeedback]);
 
-  const handleSwipeLeft = (index) => {
+  const handleSwipeLeft = useCallback((index) => {
     if (!pets[index]) return;
     showFeedback('❌ No me interesa');
     registerSwipe(pets[index].id, false);
-  };
+  }, [pets, registerSwipe, showFeedback]);
+
+  const showIcons = cardIndex < pets.length;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        {cardIndex < pets.length ? (
+    <View style={[styles.container, { paddingTop: 0 }]}>
+      <View style={styles.swiperWrapper}>
+        {showIcons && (
           <Swiper
             ref={swiperRef}
             cards={pets}
@@ -198,27 +167,36 @@ export default function SwipeScreen() {
             onSwipedLeft={handleSwipeLeft}
             onSwiped={(index) => setCardIndex(index + 1)}
             stackSize={3}
+            stackSeparation={15}
             backgroundColor="transparent"
             animateCardOpacity
             disableTopSwipe
             disableBottomSwipe
+            infinite={false}
+            containerStyle={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
           />
-        ) : (
+        )}
+
+        {!showIcons && (
           <View style={styles.noMoreContainer}>
-            <Text style={styles.noMoreText}>🐾 No hay más mascotas en tu filtro por ahora</Text>
+            <Text style={styles.noMoreText}>
+              🐾 No hay más mascotas en tu filtro por ahora
+            </Text>
           </View>
         )}
 
-        <Animated.View style={[styles.feedback, { opacity: fadeAnim }]}>
-          <RNText style={styles.feedbackText}>{feedback}</RNText>
-        </Animated.View>
-
-        {cardIndex < pets.length && (
+        {showIcons && (
           <View style={styles.iconContainer}>
             <MaterialCommunityIcons
               name="close-circle-outline"
-              size={40}
-              color="red"
+              size={68}
+              color="#FF4C4C"
               onPress={() => {
                 handleSwipeLeft(cardIndex);
                 swiperRef.current?.swipeLeft();
@@ -226,8 +204,8 @@ export default function SwipeScreen() {
             />
             <MaterialCommunityIcons
               name="heart-circle-outline"
-              size={40}
-              color="purple"
+              size={68}
+              color="#4CAF50"
               onPress={() => {
                 handleSwipeRight(cardIndex);
                 swiperRef.current?.swipeRight();
@@ -235,8 +213,14 @@ export default function SwipeScreen() {
             />
           </View>
         )}
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+
+      {feedback !== '' && (
+        <Animated.View style={[styles.feedback, { opacity: fadeAnim }]}>
+          <RNText style={styles.feedbackText}>{feedback}</RNText>
+        </Animated.View>
+      )}
+    </View>
   );
 }
 
@@ -248,6 +232,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  swiperWrapper: {
+    flex: 1,
+    position: 'relative',
+    justifyContent: 'center',
+  },
   card: {
     height: CARD_HEIGHT,
     width: CARD_WIDTH,
@@ -256,10 +245,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 6,
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   image: {
     width: '100%',
@@ -297,6 +286,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     alignSelf: 'center',
+    zIndex: 10,
   },
   feedbackText: {
     color: 'white',
@@ -315,9 +305,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   iconContainer: {
+    position: 'absolute',
+    bottom: 130,
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    marginTop: 10,
-    paddingBottom: 20,
+    zIndex: 20,
   },
 });

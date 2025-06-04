@@ -73,7 +73,7 @@ export default function Navigation({ initialRoute = 'Login' }) {
         <Stack.Screen
           name="Swipe"
           component={SwipeScreen}
-          options={{ title: 'Explorar Mascotas' }}
+          options={{ headerShown: false }}
         />
 
         {/* Publicador */}
