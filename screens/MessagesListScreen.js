@@ -124,11 +124,12 @@ export default function MessagesListScreen() {
             {hasUnreadMessages && <View style={styles.unreadDot} />}
           </View>
           <Text
-            numberOfLines={1}
-            style={[styles.message, hasUnreadMessages && styles.unreadText]}
-          >
-            {lastMessage || 'Sin mensajes aún.'}
-          </Text>
+  numberOfLines={1}
+  style={[styles.message, hasUnreadMessages && styles.unreadText]}
+>
+  {lastMessage?.trim().length > 0 ? lastMessage : 'Sin mensajes aún.'}
+</Text>
+
         </View>
         <Image
           source={{ uri: petPhoto }}
