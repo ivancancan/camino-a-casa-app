@@ -55,7 +55,7 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <ImageBackground
-      source={require('../assets/login-bg.jpg')}
+      source={require('../assets/login-bg.png')}
       style={styles.background}
       contentFit="cover"
       transition={300}
