@@ -147,12 +147,10 @@ export default function SwipeScreen() {
     registerSwipe(pets[index].id, false);
   }, [pets, registerSwipe, showFeedback]);
 
-  const showIcons = cardIndex < pets.length;
-
   return (
     <View style={[styles.container, { paddingTop: 0 }]}>
       <View style={styles.swiperWrapper}>
-        {showIcons && (
+        {cardIndex < pets.length ? (
           <Swiper
             ref={swiperRef}
             cards={pets}
@@ -166,24 +164,16 @@ export default function SwipeScreen() {
             onSwipedRight={handleSwipeRight}
             onSwipedLeft={handleSwipeLeft}
             onSwiped={(index) => setCardIndex(index + 1)}
-            stackSize={3}
-            stackSeparation={15}
+            stackSize={4}
+            stackSeparation={35}
+            cardVerticalMargin={50}
+            showSecondCard={true}
             backgroundColor="transparent"
             animateCardOpacity
             disableTopSwipe
             disableBottomSwipe
-            infinite={false}
-            containerStyle={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
           />
-        )}
-
-        {!showIcons && (
+        ) : (
           <View style={styles.noMoreContainer}>
             <Text style={styles.noMoreText}>
               🐾 No hay más mascotas en tu filtro por ahora
@@ -191,7 +181,7 @@ export default function SwipeScreen() {
           </View>
         )}
 
-        {showIcons && (
+        {cardIndex < pets.length && (
           <View style={styles.iconContainer}>
             <MaterialCommunityIcons
               name="close-circle-outline"
@@ -245,10 +235,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 6,
   },
   image: {
     width: '100%',

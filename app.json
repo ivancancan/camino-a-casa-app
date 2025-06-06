@@ -11,8 +11,8 @@
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/arya-splash-2.png",
-      "resizeMode": "contain",              
-      "backgroundColor": "#f8f2ff"           
+      "resizeMode": "contain",
+      "backgroundColor": "#f8f2ff"
     },
     "ios": {
       "supportsTablet": true,
@@ -34,7 +34,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "c4c623e3-3443-4996-8e93-b2392199398c"
+        "projectId": "4d84b3fe-1670-4aa7-9c52-f44a8071869c"
       }
     }
   }
