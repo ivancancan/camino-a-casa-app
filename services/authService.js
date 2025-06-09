@@ -1,6 +1,6 @@
 import { API_BASE } from './Api';
 
-const API_URL = `${API_BASE}/api/auth`; // <-- Cambio aquí
+const API_URL = `${API_BASE}/api/auth`;
 
 const parseJSON = async (response) => {
   const text = await response.text();

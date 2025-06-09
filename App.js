@@ -4,8 +4,13 @@ import { View, Image, StyleSheet } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Constants from 'expo-constants'; // ✅ importar config de Expo
 import Navigation from './services/Navigation';
 import { getSession } from './services/sessionService';
+
+
+const { API_URL, SUPABASE_URL, SUPABASE_ANON_KEY } = Constants.expoConfig.extra;
+console.log("🌐 API_URL actual:", API_URL);
 
 export default function App() {
   const [initialRoute, setInitialRoute] = useState(null);
@@ -64,7 +69,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f2ff', // ✅ mismo fondo que splash y login
+    backgroundColor: '#f8f2ff',
   },
   logo: {
     width: 160,

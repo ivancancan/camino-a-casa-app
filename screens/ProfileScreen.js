@@ -83,7 +83,7 @@ export default function ProfileScreen({ navigation }) {
     const formData = new FormData();
     const uniqueName = uuidv4();
 
-    formData.append('file', {
+    formData.append('image', {
       uri: asset.uri,
       name: `${uniqueName}.jpg`,
       type: 'image/jpeg',

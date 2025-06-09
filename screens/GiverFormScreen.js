@@ -121,33 +121,43 @@ export default function GiverFormScreen() {
       const { token } = await getSession();
 
       const formData = new FormData();
-      const filename = asset.uri.split('/').pop();
-      const match = /\.(\w+)$/.exec(filename || '');
-      const type = match ? `image/${match[1]}` : `image/jpeg`;
+const uri = asset.uri;
+const filename = uri.split('/').pop() || `photo.jpg`;
+const extMatch = /\.(\w+)$/.exec(filename);
+const ext = extMatch ? extMatch[1].toLowerCase() : 'jpg';
+const type = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/png';
 
-      formData.append('file', {
-        uri: asset.uri,
-        name: filename,
-        type,
-      });
+formData.append('image', {
+  uri,
+  name: filename,
+  type,
+});
 
       try {
-        const res = await fetch(`${API_BASE}/api/pets/upload-photo`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
+  const res = await fetch(`${API_BASE}/api/pets/upload-photo`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
 
-        const data = await res.json();
-        if (data.url) {
-          setForm((prev) => ({ ...prev, fotos: [...prev.fotos, data.url] }));
-        } else {
-          Alert.alert('Error al subir imagen');
-        }
-      } catch (err) {
-        console.error('Error al subir imagen', err);
-        Alert.alert('Error al subir imagen');
-      }
+  const contentType = res.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    const text = await res.text();
+    console.error('❌ Respuesta no JSON:', text);
+    throw new Error('Respuesta inesperada del servidor');
+  }
+
+  const data = await res.json();
+  if (data.url) {
+    setForm((prev) => ({ ...prev, fotos: [...prev.fotos, data.url] }));
+  } else {
+    console.error('❌ Error en la respuesta:', data);
+    Alert.alert('Error al subir imagen');
+  }
+} catch (err) {
+  console.error('❌ Error al subir imagen', err);
+  Alert.alert('Error al subir imagen');
+}
     }
   };
 

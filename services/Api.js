@@ -1,1 +1,3 @@
-export const API_BASE = 'https://90fe-189-181-223-196.ngrok-free.app';
+import Constants from 'expo-constants';
+
+export const API_BASE = Constants.expoConfig.extra.API_URL;

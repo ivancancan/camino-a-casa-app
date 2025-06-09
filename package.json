@@ -6,15 +6,20 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "production": "npx env-cmd -f .env.production expo start",
+    "staging": "NODE_ENV=staging npx env-cmd -f .env.staging expo start"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/bottom-tabs": "^7.3.13",
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/native-stack": "^7.3.13",
+    "dotenv": "^16.5.0",
+    "dotenv-flow": "^4.1.0",
     "expo": "~53.0.9",
     "expo-auth-session": "~6.1.5",
+    "expo-blur": "~14.1.4",
     "expo-crypto": "~14.1.4",
     "expo-dev-client": "~5.1.8",
     "expo-image": "~2.1.7",
@@ -36,11 +41,11 @@
     "react-native-screens": "~4.10.0",
     "react-native-swipe-list-view": "^3.2.9",
     "react-native-swipeable-item": "^2.0.9",
-    "react-native-vector-icons": "^10.2.0",
-    "expo-blur": "~14.1.4"
+    "react-native-vector-icons": "^10.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "env-cmd": "^10.1.0"
   },
   "private": true
 }

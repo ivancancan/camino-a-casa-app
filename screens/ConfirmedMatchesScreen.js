@@ -20,12 +20,11 @@ export default function ConfirmedMatchesScreen() {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  const resolveImage = (foto) => {
-    if (!foto || foto.length === 0)
-      return 'https://via.placeholder.com/300x300.png?text=Mascota';
-    if (foto.startsWith('http') || foto.startsWith('data:image')) return foto;
-    return `data:image/jpeg;base64,${foto}`;
-  };
+const resolveImage = (foto) => {
+  if (!foto || foto.length === 0)
+    return 'https://via.placeholder.com/300x300.png?text=Mascota';
+  return foto; // Siempre esperamos una URL de Supabase Storage
+};
 
   const fetchMatches = async () => {
     setLoading(true);

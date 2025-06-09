@@ -136,6 +136,13 @@ export default function GiverDashboardScreen({ navigation }) {
     );
   };
 
+  const resolveImage = (foto) => {
+    if (!foto || typeof foto !== 'string') {
+      return 'https://via.placeholder.com/300x300.png?text=Mascota';
+    }
+    return foto;
+  };
+
   const renderItem = ({ item }) => (
     <Card
       key={item.id}
@@ -147,7 +154,7 @@ export default function GiverDashboardScreen({ navigation }) {
     >
       <View style={styles.imageContainer}>
         <Image
-          source={item.fotos?.[0] || 'https://via.placeholder.com/300x300.png?text=Mascota'}
+          source={resolveImage(item.fotos?.[0])}
           style={styles.image}
           contentFit="cover"
           transition={300}

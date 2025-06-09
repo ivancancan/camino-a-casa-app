@@ -35,7 +35,11 @@
     "extra": {
       "eas": {
         "projectId": "4d84b3fe-1670-4aa7-9c52-f44a8071869c"
-      }
+      },
+      "API_URL": "https://camino-a-casa-api-production.up.railway.app",
+      "SUPABASE_URL": "https://adapuzmtkmchtsaithcc.supabase.co",
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkYXB1em10a21jaHRzYWl0aGNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwMTM2NTMsImV4cCI6MjA2NDU4OTY1M30.jZKAmNQnxVidsyOwg4sqv5kFN3vo2XV7lnAIJAh1CgA",
+      "ENV": "production"
     }
   }
 }
