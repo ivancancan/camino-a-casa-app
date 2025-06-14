@@ -124,7 +124,7 @@ export default function AdopterTabsNavigator() {
           }}
         />
         <Tab.Screen
-          name="Preferencias"
+          name="AdopterProfile"
           component={AdopterProfileScreen}
           options={{
             tabBarLabel: 'Mi Perfil',

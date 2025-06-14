@@ -41,6 +41,7 @@ export default function AdopterProfileScreen({ navigation }) {
     const fetchProfile = async () => {
       try {
         const { token } = await getSession();
+        console.log('📡 Llamando al endpoint de perfil con token:', token);
         const res = await fetch(`${API_BASE}/api/adopter/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -57,19 +58,19 @@ export default function AdopterProfileScreen({ navigation }) {
 
         if (res.ok && data.profile) {
           setForm({
-            tieneMascotas: data.profile.tienemascotas || '',
-            experiencia: data.profile.experiencia || '',
-            hayNinos: data.profile.hayninos || '',
-            vivienda: data.profile.vivienda || '',
-            espacioExterior: data.profile.espacioexterior || '',
-            ritmo: data.profile.ritmo || '',
-            cubreGastos: data.profile.cubregastos || '',
-            tallaPreferida: data.profile.tallapreferida || [],
-            caracterPreferido: data.profile.caracterpreferido || [],
-            aceptaSeguimiento: data.profile.aceptaseguimiento || '',
-            foto: data.profile.foto || '',
-            motivacion: data.profile.motivacion || '',
-          });
+  tieneMascotas: data.profile.tienemascotas || '',
+  experiencia: data.profile.experiencia || '',
+  hayNinos: data.profile.hayninos || '',
+  vivienda: data.profile.vivienda || '',
+  espacioExterior: data.profile.espacioexterior || '',
+  ritmo: data.profile.ritmo || '',
+  cubreGastos: data.profile.cubregastos || '',
+  tallaPreferida: data.profile.tallapreferida || [],
+  caracterPreferido: data.profile.caracterpreferido || [],
+  aceptaSeguimiento: data.profile.aceptaseguimiento || '',
+  foto: data.profile.foto || '',
+  motivacion: data.profile.motivacion || '',
+});
           if (data.profile.foto) setPhotoPreview(data.profile.foto);
         }
       } catch (err) {
@@ -164,6 +165,7 @@ export default function AdopterProfileScreen({ navigation }) {
   const handleSubmit = async () => {
     try {
       const { token, user } = await getSession();
+      console.log('📤 Enviando perfil:', form);
       const response = await fetch(`${API_BASE}/api/adopter/profile`, {
         method: 'POST',
         headers: {
