@@ -94,70 +94,72 @@ export default function AdopterProfileScreen({ navigation }) {
   };
 
   const pickImage = async (fromCamera = false) => {
-  const permissionResult = fromCamera
-    ? await ImagePicker.requestCameraPermissionsAsync()
-    : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult = fromCamera
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-  if (permissionResult.status !== 'granted') {
-    Alert.alert('Permiso requerido', 'Necesitamos acceso para continuar.');
-    return;
-  }
+    if (permissionResult.status !== 'granted') {
+      Alert.alert('Permiso requerido', 'Necesitamos acceso para continuar.');
+      return;
+    }
 
-  const result = fromCamera
-    ? await ImagePicker.launchCameraAsync({ quality: 0.7, base64: false })
-    : await ImagePicker.launchImageLibraryAsync({ quality: 0.7, base64: false });
+    const result = fromCamera
+      ? await ImagePicker.launchCameraAsync({ quality: 0.7, base64: false })
+      : await ImagePicker.launchImageLibraryAsync({ quality: 0.7, base64: false });
 
-  if (!result.canceled && result.assets?.length > 0) {
-    const asset = result.assets[0];
-    setPhotoPreview(asset.uri);
-    setSubiendoImagen(true);
+    if (!result.canceled && result.assets?.length > 0) {
+      const asset = result.assets[0];
+      const fileUri = asset.uri;
+      const fileExtension = fileUri.split('.').pop();
+      const mimeType = asset.type === 'image' ? 'image/jpeg' : 'application/octet-stream';
 
-    const formData = new FormData();
-    const uniqueName = uuidv4();
+      setPhotoPreview(fileUri);
+      setSubiendoImagen(true);
 
-    formData.append('foto', {
-      uri: asset.uri,
-      name: `${uniqueName}.jpg`,
-      type: 'image/jpeg',
-    });
+      const formData = new FormData();
+      const uniqueName = uuidv4();
 
-    try {
-      const { token } = await getSession();
-      const uploadRes = await fetch(`${API_BASE}/api/adopter/upload-photo`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // NO pongas Content-Type
-        },
-        body: formData,
+      formData.append('image', {
+        uri: fileUri,
+        name: `adopter-${uniqueName}.${fileExtension || 'jpg'}`,
+        type: mimeType,
       });
 
-      const contentType = uploadRes.headers.get('content-type');
-      if (!uploadRes.ok || !contentType?.includes('application/json')) {
-        const errorText = await uploadRes.text();
-        console.error('❌ Error al subir imagen:', errorText);
-        Alert.alert('Error', 'El servidor no devolvió una respuesta válida.');
-        return;
-      }
+      try {
+        const { token } = await getSession();
+        const uploadRes = await fetch(`${API_BASE}/api/adopter/upload-photo`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
 
-      const uploadData = await uploadRes.json();
-      if (uploadData.url) {
-        setForm((prev) => ({ ...prev, foto: uploadData.url }));
-        setPhotoPreview(uploadData.url);
-      } else {
-        Alert.alert('Error', uploadData.error || 'No se pudo subir la imagen.');
+        const contentType = uploadRes.headers.get('content-type');
+        if (!uploadRes.ok || !contentType?.includes('application/json')) {
+          const errorText = await uploadRes.text();
+          console.error('❌ Error al subir imagen:', errorText);
+          Alert.alert('Error', 'El servidor no devolvió una respuesta válida.');
+          return;
+        }
+
+        const uploadData = await uploadRes.json();
+        if (uploadData.url) {
+          setForm((prev) => ({ ...prev, foto: uploadData.url }));
+          setPhotoPreview(uploadData.url);
+        } else {
+          Alert.alert('Error', uploadData.error || 'No se pudo subir la imagen.');
+          setPhotoPreview(null);
+        }
+      } catch (err) {
+        console.error('❌ Error al subir imagen:', err);
+        Alert.alert('Error', 'Ocurrió un problema al subir la imagen.');
         setPhotoPreview(null);
+      } finally {
+        setSubiendoImagen(false);
       }
-    } catch (err) {
-      console.error('❌ Error al subir imagen:', err);
-      Alert.alert('Error', 'Ocurrió un problema al subir la imagen.');
-      setPhotoPreview(null);
-    } finally {
-      setSubiendoImagen(false);
     }
-  }
-};
-
+  };
 
   const handleSubmit = async () => {
     try {
