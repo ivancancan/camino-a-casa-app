@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, Dimensions, Alert, Pressable } from 'react-native';
+import { View, StyleSheet, Dimensions, Alert, Pressable, Animated } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
@@ -16,6 +16,9 @@ export default function SwipeScreen() {
   const [pets, setPets] = useState([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState('');
+  const [feedbackColor, setFeedbackColor] = useState('#000');
+  const feedbackOpacity = useState(new Animated.Value(0))[0];
   const navigation = useNavigation();
 
   const fetchPets = useCallback(async () => {
@@ -80,22 +83,41 @@ export default function SwipeScreen() {
     if (!pet) return;
 
     try {
-      await fetch(`${API_BASE}/api/swipes/${action}`, {
+      await fetch(`${API_BASE}/api/swipes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ adopterId: user.id, petId: pet.id }),
+        body: JSON.stringify({
+          adopterId: user.id,
+          petId: pet.id,
+          interested: action === 'like',
+        }),
+      });
+
+      setFeedback(action === 'like' ? '💜 Te interesa' : '❌ No te interesa');
+      setFeedbackColor(action === 'like' ? '#4CAF50' : '#FF4C4C');
+
+      Animated.sequence([
+        Animated.timing(feedbackOpacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.delay(700),
+        Animated.timing(feedbackOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setIndex((prev) => prev + 1);
+        setFeedback('');
       });
     } catch (err) {
       console.error(`❌ Error en ${action}:`, err);
     }
-
-    // Pasar al siguiente con pequeña pausa para UX
-    setTimeout(() => {
-      setIndex((prev) => prev + 1);
-    }, 100);
   };
 
   if (loading) {
@@ -125,10 +147,11 @@ export default function SwipeScreen() {
 
   return (
     <View style={styles.container}>
-      <Pressable
-        style={styles.card}
-        onPress={() => navigation.navigate('PetDetail', { pet })}
-      >
+      <Animated.View style={[styles.feedbackBox, { opacity: feedbackOpacity, borderColor: feedbackColor }]}>
+        <Text style={[styles.feedbackText, { color: feedbackColor }]}>{feedback}</Text>
+      </Animated.View>
+
+      <Pressable style={styles.card} onPress={() => navigation.navigate('PetDetail', { pet })}>
         <Image
           source={{ uri: pet.fotos?.[0] }}
           style={styles.image}
@@ -226,5 +249,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  feedbackBox: {
+    position: 'absolute',
+    top: '45%',
+    alignSelf: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    borderWidth: 2,
+    zIndex: 10,
+  },
+  feedbackText: {
+    fontSize: 22,
+    fontWeight: 'bold',
   },
 });

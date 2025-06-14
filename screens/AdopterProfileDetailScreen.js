@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Text, Card, Title, Paragraph } from 'react-native-paper';
 import { Image } from 'expo-image';
-import { resolveAssetSource } from 'react-native';
+import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
 
 const AdopterProfileDetailScreen = React.memo(({ route }) => {
   const { adopter } = route.params;

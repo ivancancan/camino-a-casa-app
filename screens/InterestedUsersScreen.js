@@ -108,11 +108,14 @@ export default function InterestedUsersScreen({ route }) {
         </Card.Content>
         <Card.Actions style={styles.actions}>
           <Button
-            onPress={() =>
-              navigation.navigate('AdopterProfileDetail', {
-                adopter,
-              })
-            }
+onPress={() =>
+  navigation.navigate('AdopterProfileDetail', {
+    adopter: {
+      ...adopter,
+      adopter_profile: adopter_profile,
+    },
+  })
+}
           >
             Ver perfil
           </Button>
