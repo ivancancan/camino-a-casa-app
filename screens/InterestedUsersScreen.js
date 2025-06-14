@@ -23,10 +23,13 @@ export default function InterestedUsersScreen({ route }) {
     setLoading(true);
     try {
       const { token } = await getSession();
-      const response = await fetch(`${API_BASE}/api/swipes/interested/${petId}`, {
+      const response = await fetch(`${API_BASE}/api/giver/pet/${petId}/interested`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
+
+      console.log('🐶 Interested Users:', data);
+
       if (response.ok) {
         setInterestedUsers(data);
       } else {
@@ -39,22 +42,22 @@ export default function InterestedUsersScreen({ route }) {
     }
   };
 
-  const respondToInterest = async (adopterId, accepted) => {
+  const respondToInterest = async (swipeId, accepted) => {
     try {
       const { token } = await getSession();
-      const response = await fetch(`${API_BASE}/api/swipes/confirm-match`, {
+      const response = await fetch(`${API_BASE}/api/giver/swipe`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ adopterId, petId, accepted }),
+        body: JSON.stringify({ swipeId, accepted }),
       });
 
       const data = await response.json();
       if (response.ok) {
         Alert.alert('✅', accepted ? 'Match confirmado' : 'Interesado rechazado');
-        fetchInterested(); // refrescar la lista
+        fetchInterested();
       } else {
         Alert.alert('Error', data.error || 'No se pudo guardar la respuesta');
       }
@@ -68,18 +71,18 @@ export default function InterestedUsersScreen({ route }) {
   }, []);
 
   const renderItem = ({ item }) => {
-    const { adopter_id } = item;
-    const profile = adopter_id.adopter_profile || {};
+    const { adopter, adopter_profile } = item;
 
-    const avatarUri = profile?.foto?.startsWith('http')
-      ? profile.foto
-      : 'https://via.placeholder.com/100x100.png?text=Foto';
+    const avatarUri =
+      adopter_profile?.foto && adopter_profile.foto.includes('http')
+        ? adopter_profile.foto
+        : 'https://via.placeholder.com/100x100.png?text=Foto';
 
     return (
       <Card style={styles.card}>
         <Card.Title
-          title={adopter_id.name || 'Adoptante'}
-          subtitle={`ID: ${adopter_id.id}`}
+          title={adopter?.name || 'Adoptante'}
+          subtitle={`ID: ${adopter?.id}`}
           left={() => (
             <Image
               source={{ uri: avatarUri }}
@@ -93,21 +96,21 @@ export default function InterestedUsersScreen({ route }) {
         <Card.Content>
           <Text style={styles.label}>Motivación:</Text>
           <Text style={styles.value}>
-            {profile.motivacion || 'No proporcionada'}
+            {adopter_profile?.motivacion || 'No proporcionada'}
           </Text>
           <Text style={styles.label}>Preferencias:</Text>
           <Text style={styles.value}>
-            Talla: {profile.tallapreferida || 'N/A'}{'\n'}
-            Carácter: {profile.caracterpreferido || 'N/A'}{'\n'}
-            Tiene otras mascotas: {profile.tienemascotas ? 'Sí' : 'No'}{'\n'}
-            Vivienda: {profile.vivienda || 'No especificada'}
+            Talla: {adopter_profile?.tallapreferida?.join(', ') || 'N/A'}{'\n'}
+            Carácter: {adopter_profile?.caracterpreferido?.join(', ') || 'N/A'}{'\n'}
+            Tiene otras mascotas: {adopter_profile?.tienemascotas || 'N/A'}{'\n'}
+            Vivienda: {adopter_profile?.vivienda || 'No especificada'}
           </Text>
         </Card.Content>
         <Card.Actions style={styles.actions}>
           <Button
             onPress={() =>
               navigation.navigate('AdopterProfileDetail', {
-                adopter: adopter_id,
+                adopter,
               })
             }
           >
@@ -115,13 +118,13 @@ export default function InterestedUsersScreen({ route }) {
           </Button>
           <Button
             mode="contained"
-            onPress={() => respondToInterest(adopter_id.id, true)}
+            onPress={() => respondToInterest(item.id, true)}
           >
             Aceptar
           </Button>
           <Button
             mode="outlined"
-            onPress={() => respondToInterest(adopter_id.id, false)}
+            onPress={() => respondToInterest(item.id, false)}
           >
             Rechazar
           </Button>

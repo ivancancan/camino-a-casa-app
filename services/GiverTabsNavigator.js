@@ -20,7 +20,7 @@ const Badge = ({ count }) =>
         position: 'absolute',
         right: -6,
         top: -4,
-        backgroundColor: 'red',
+        backgroundColor: '#a259ff',
         borderRadius: 10,
         width: 18,
         height: 18,
@@ -34,6 +34,13 @@ const Badge = ({ count }) =>
     </View>
   ) : null;
 
+const IconWithBadge = ({ name, color, badgeCount }) => (
+  <View>
+    <MaterialCommunityIcons name={name} color={color} size={24} />
+    <Badge count={badgeCount} />
+  </View>
+);
+
 export default function GiverTabsNavigator() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [unseenMatches, setUnseenMatches] = useState(0);
@@ -45,15 +52,19 @@ export default function GiverTabsNavigator() {
 
       const headers = { Authorization: `Bearer ${session.token}` };
 
-      // Mensajes no leídos
-      const res1 = await fetch(`${API_BASE}/api/messages/unread-counts`, { headers });
-      const json1 = await res1.json();
-      const total = Object.values(json1.counts || {}).reduce((sum, n) => sum + n, 0);
-      setUnreadCount(total);
+      const [res1, res2] = await Promise.all([
+        fetch(`${API_BASE}/api/messages/unread-counts`, { headers }),
+        fetch(`${API_BASE}/api/matches/unseen-count`, { headers }),
+      ]);
 
-      // Matches no vistos
-      const res2 = await fetch(`${API_BASE}/api/matches/unseen-count`, { headers });
+      const json1 = await res1.json();
       const json2 = await res2.json();
+
+      const totalUnread = Object.values(json1.counts || {}).reduce(
+        (sum, n) => sum + n,
+        0
+      );
+      setUnreadCount(totalUnread);
       setUnseenMatches(json2.unseenCount || 0);
     } catch (err) {
       console.error('❌ Error al obtener contadores:', err);
@@ -62,7 +73,7 @@ export default function GiverTabsNavigator() {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchCounts(); // actualiza cuando se enfoca el tab
+      fetchCounts();
     }, [])
   );
 
@@ -120,10 +131,7 @@ export default function GiverTabsNavigator() {
         options={{
           tabBarLabel: 'Matches',
           tabBarIcon: ({ color }) => (
-            <View>
-              <MaterialCommunityIcons name="heart" color={color} size={24} />
-              <Badge count={unseenMatches} />
-            </View>
+            <IconWithBadge name="heart" color={color} badgeCount={unseenMatches} />
           ),
         }}
       />
@@ -133,10 +141,7 @@ export default function GiverTabsNavigator() {
         options={{
           tabBarLabel: 'Mensajes',
           tabBarIcon: ({ color }) => (
-            <View>
-              <MaterialCommunityIcons name="chat" color={color} size={24} />
-              <Badge count={unreadCount} />
-            </View>
+            <IconWithBadge name="chat" color={color} badgeCount={unreadCount} />
           ),
         }}
       />

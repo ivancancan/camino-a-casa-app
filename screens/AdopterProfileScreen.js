@@ -94,66 +94,70 @@ export default function AdopterProfileScreen({ navigation }) {
   };
 
   const pickImage = async (fromCamera = false) => {
-    const permissionResult = fromCamera
-      ? await ImagePicker.requestCameraPermissionsAsync()
-      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const permissionResult = fromCamera
+    ? await ImagePicker.requestCameraPermissionsAsync()
+    : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (permissionResult.status !== 'granted') {
-      Alert.alert('Permiso requerido', 'Necesitamos acceso para continuar.');
-      return;
-    }
+  if (permissionResult.status !== 'granted') {
+    Alert.alert('Permiso requerido', 'Necesitamos acceso para continuar.');
+    return;
+  }
 
-    const result = fromCamera
-      ? await ImagePicker.launchCameraAsync({ quality: 0.7, base64: false })
-      : await ImagePicker.launchImageLibraryAsync({ quality: 0.7, base64: false });
+  const result = fromCamera
+    ? await ImagePicker.launchCameraAsync({ quality: 0.7, base64: false })
+    : await ImagePicker.launchImageLibraryAsync({ quality: 0.7, base64: false });
 
-    if (!result.canceled && result.assets?.length > 0) {
-      const asset = result.assets[0];
-      setPhotoPreview(asset.uri);
-      setSubiendoImagen(true);
+  if (!result.canceled && result.assets?.length > 0) {
+    const asset = result.assets[0];
+    setPhotoPreview(asset.uri);
+    setSubiendoImagen(true);
 
-      const formData = new FormData();
-      const uniqueName = uuidv4();
+    const formData = new FormData();
+    const uniqueName = uuidv4();
 
-      formData.append('file', {
-        uri: asset.uri,
-        name: `${uniqueName}.jpg`,
-        type: 'image/jpeg',
+    formData.append('foto', {
+      uri: asset.uri,
+      name: `${uniqueName}.jpg`,
+      type: 'image/jpeg',
+    });
+
+    try {
+      const { token } = await getSession();
+      const uploadRes = await fetch(`${API_BASE}/api/adopter/upload-photo`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // NO pongas Content-Type
+        },
+        body: formData,
       });
 
-      try {
-        const { token } = await getSession();
-        const uploadRes = await fetch(`${API_BASE}/api/adopter/upload-photo`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
-
-        const contentType = uploadRes.headers.get('content-type');
-        if (!uploadRes.ok || !contentType?.includes('application/json')) {
-          const errorText = await uploadRes.text();
-          console.error('❌ Error al subir imagen:', errorText);
-          Alert.alert('Error', 'El servidor no devolvió una respuesta válida.');
-          return;
-        }
-
-        const uploadData = await uploadRes.json();
-        if (uploadData.url) {
-          setForm((prev) => ({ ...prev, foto: uploadData.url }));
-          setPhotoPreview(uploadData.url);
-        } else {
-          Alert.alert('Error', uploadData.error || 'No se pudo subir la imagen.');
-          setPhotoPreview(null);
-        }
-      } catch (err) {
-        console.error('❌ Error al subir imagen:', err);
-        Alert.alert('Error', 'Ocurrió un problema al subir la imagen.');
-        setPhotoPreview(null);
-      } finally {
-        setSubiendoImagen(false);
+      const contentType = uploadRes.headers.get('content-type');
+      if (!uploadRes.ok || !contentType?.includes('application/json')) {
+        const errorText = await uploadRes.text();
+        console.error('❌ Error al subir imagen:', errorText);
+        Alert.alert('Error', 'El servidor no devolvió una respuesta válida.');
+        return;
       }
+
+      const uploadData = await uploadRes.json();
+      if (uploadData.url) {
+        setForm((prev) => ({ ...prev, foto: uploadData.url }));
+        setPhotoPreview(uploadData.url);
+      } else {
+        Alert.alert('Error', uploadData.error || 'No se pudo subir la imagen.');
+        setPhotoPreview(null);
+      }
+    } catch (err) {
+      console.error('❌ Error al subir imagen:', err);
+      Alert.alert('Error', 'Ocurrió un problema al subir la imagen.');
+      setPhotoPreview(null);
+    } finally {
+      setSubiendoImagen(false);
     }
-  };
+  }
+};
+
 
   const handleSubmit = async () => {
     try {
@@ -217,8 +221,6 @@ export default function AdopterProfileScreen({ navigation }) {
           multiline
           style={{ marginBottom: 16 }}
         />
-
-        {/* Aquí siguen todos los radio y checkbox igual que en tu código anterior... */}
 
         <Text>¿Tienes otras mascotas?</Text>
         <RadioButton.Group onValueChange={(val) => setForm({ ...form, tieneMascotas: val })} value={form.tieneMascotas}>

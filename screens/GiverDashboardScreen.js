@@ -1,300 +1,182 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
-  SafeAreaView,
   View,
+  Text,
   StyleSheet,
-  Alert,
   FlatList,
-  RefreshControl,
   TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
-import { Text, Card, IconButton } from 'react-native-paper';
+import { Image } from 'expo-image';
+import { useNavigation } from '@react-navigation/native';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
-import { Image } from 'expo-image';
 
-export default function GiverDashboardScreen({ navigation }) {
+export default function GiverDashboardScreen() {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const navigation = useNavigation();
 
-  const fetchMyPets = async () => {
-    setLoading(true);
+  const fetchPets = useCallback(async () => {
     try {
       const { token } = await getSession();
-      const response = await fetch(`${API_BASE}/api/pets/mine/with-interest`, {
+      const res = await fetch(`${API_BASE}/api/giver/pets`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await response.json();
-      if (response.ok) {
-        setPets(data.pets || []);
+
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setPets(data);
       } else {
-        Alert.alert('Error', data.error || 'No se pudieron cargar tus mascotas');
+        console.warn('⚠️ No se recibió un array:', data);
+        setPets([]);
       }
     } catch (err) {
-      Alert.alert('Error', 'Fallo al cargar mascotas');
+      console.error('❌ Error al cargar mascotas del giver:', err);
+      setPets([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', fetchMyPets);
-    return unsubscribe;
-  }, [navigation]);
+    setLoading(true);
+    fetchPets();
+  }, [fetchPets]);
 
-  const handleDelete = (petId) => {
-    Alert.alert(
-      'Confirmar borrado',
-      '¿Seguro que quieres borrar esta mascota?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Borrar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const { token } = await getSession();
-              const response = await fetch(`${API_BASE}/api/pets/${petId}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const data = await response.json();
-              if (response.ok) {
-                Alert.alert('Éxito', 'Mascota borrada');
-                fetchMyPets();
-              } else {
-                Alert.alert('Error', data.error || 'No se pudo borrar la mascota');
-              }
-            } catch (err) {
-              Alert.alert('Error', 'Fallo al borrar la mascota');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleMarkAsAdopted = async (petId) => {
-    Alert.alert(
-      'Confirmar',
-      '¿Estás seguro de que esta mascota ya fue adoptada?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Confirmar',
-          onPress: async () => {
-            try {
-              const { token } = await getSession();
-              const response = await fetch(`${API_BASE}/api/pets/${petId}/mark-adopted`, {
-                method: 'PATCH',
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const data = await response.json();
-              if (response.ok) {
-                Alert.alert('Éxito', 'Mascota marcada como adoptada');
-                fetchMyPets();
-              } else {
-                Alert.alert('Error', data.error || 'No se pudo actualizar el estado');
-              }
-            } catch (err) {
-              Alert.alert('Error', 'Fallo al actualizar el estado');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleMarkAsAvailable = async (petId) => {
-    Alert.alert(
-      'Confirmar',
-      '¿Quieres volver a poner esta mascota como disponible?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sí',
-          onPress: async () => {
-            try {
-              const { token } = await getSession();
-              const response = await fetch(`${API_BASE}/api/pets/${petId}/mark-available`, {
-                method: 'PATCH',
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const data = await response.json();
-              if (response.ok) {
-                Alert.alert('Éxito', 'La mascota está nuevamente disponible');
-                fetchMyPets();
-              } else {
-                Alert.alert('Error', data.error || 'No se pudo actualizar el estado');
-              }
-            } catch (err) {
-              Alert.alert('Error', 'Fallo al actualizar el estado');
-            }
-          },
-        },
-      ]
-    );
-  };
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchPets();
+  }, [fetchPets]);
 
   const renderItem = ({ item }) => (
-    <Card
-      key={item.id}
-      style={[
-        styles.card,
-        item.status === 'adoptado' && styles.cardAdoptedBorder,
-      ]}
+    <TouchableOpacity
+      style={styles.card}
       onPress={() => navigation.navigate('PetDetail', { pet: item })}
     >
-      <View style={styles.imageContainer}>
+      <View style={styles.imageWrapper}>
         <Image
-          source={item.fotos?.[0] || 'https://via.placeholder.com/300x300.png?text=Mascota'}
+          source={{ uri: item.fotos?.[0] }}
           style={styles.image}
           contentFit="cover"
           transition={300}
           cachePolicy="memory-disk"
         />
-        {item.status === 'adoptado' && (
-          <View style={styles.adoptedBanner}>
-            <Text style={styles.adoptedText}>ADOPTADO</Text>
-          </View>
-        )}
-        {item.interesados > 0 && (
+        {(item.nuevosInteresados ?? 0) > 0 && (
           <TouchableOpacity
-            onPress={() => navigation.navigate('InterestedUsers', { petId: item.id })}
             style={styles.badge}
+            onPress={() => navigation.navigate('InterestedUsers', { petId: item.id })}
           >
-            <Text style={styles.badgeText}>{item.interesados}</Text>
+            <Text style={styles.badgeText}>
+              {item.nuevosInteresados > 9 ? '9+' : item.nuevosInteresados}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
       <View style={styles.cardContent}>
-        <View style={styles.textContainer}>
-          <Text style={styles.cardTitle}>{item.nombre}</Text>
-          <Text style={styles.cardSubtitle}>{`${item.edad} años • ${item.talla}`}</Text>
-        </View>
-        {item.status === 'adoptado' ? (
-          <TouchableOpacity onPress={() => handleMarkAsAvailable(item.id)}>
-            <Text style={[styles.actionText, { color: '#000' }]}>Marcar como Disponible</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity onPress={() => handleMarkAsAdopted(item.id)}>
-            <Text style={[styles.actionText, { color: '#007AFF' }]}>Marcar como Adoptado</Text>
-          </TouchableOpacity>
-        )}
-        <IconButton
-          icon="delete"
-          iconColor="red"
-          onPress={() => handleDelete(item.id)}
-        />
+        <Text style={styles.name}>{item.nombre}</Text>
+        <Text style={styles.status}>
+          Estado: {item.estado || 'Disponible'}
+        </Text>
       </View>
-    </Card>
+    </TouchableOpacity>
   );
 
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        {pets.length === 0 && !loading ? (
-          <Text style={styles.noPetsText}>No tienes mascotas publicadas.</Text>
-        ) : (
-          <FlatList
-            data={pets}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            refreshControl={
-              <RefreshControl refreshing={loading} onRefresh={fetchMyPets} />
-            }
-            contentContainerStyle={styles.flatListContent}
-          />
-        )}
+  if (loading && !refreshing) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#555" />
       </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <FlatList
+        data={pets}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#a259ff']}
+            tintColor="#a259ff"
+            title="Actualizando..."
+          />
+        }
+        ListEmptyComponent={
+          <Text style={styles.empty}>No tienes mascotas registradas.</Text>
+        }
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  flatListContent: {
-    paddingBottom: 120,
-    paddingHorizontal: 20,
-    paddingTop: 10,
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  list: {
+    padding: 16,
+    paddingTop: 8, // Para dar un poco más de aire abajo del status bar
   },
   card: {
-    marginBottom: 15,
     backgroundColor: '#fff',
-    elevation: 4,
-    borderRadius: 10,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+    elevation: 3,
   },
-  cardAdoptedBorder: {
-    borderWidth: 2,
-    borderColor: 'green',
-  },
-  noPetsText: {
-    marginTop: 40,
-    fontSize: 18,
-    textAlign: 'center',
-    color: '#555',
-  },
-  imageContainer: {
+  imageWrapper: {
     position: 'relative',
   },
   image: {
     width: '100%',
-    height: 200,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+    height: 180,
   },
   badge: {
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: '#8e24aa',
-    borderRadius: 15,
-    paddingHorizontal: 8,
+    backgroundColor: '#a259ff',
+    borderRadius: 16,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    minWidth: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
+    zIndex: 10,
   },
   badgeText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 14,
-    textAlign: 'center',
-  },
-  adoptedBanner: {
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-    backgroundColor: 'rgba(0, 128, 0, 0.7)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 5,
-  },
-  adoptedText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
   cardContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingBottom: 10,
+    padding: 12,
   },
-  textContainer: {
-    flexShrink: 1,
-  },
-  cardTitle: {
-    fontSize: 16,
+  name: {
+    fontSize: 20,
     fontWeight: 'bold',
   },
-  cardSubtitle: {
+  status: {
     fontSize: 14,
     color: '#555',
+    marginTop: 4,
   },
-  actionText: {
-    fontWeight: 'bold',
-    marginRight: 10,
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  empty: {
+    textAlign: 'center',
+    marginTop: 60,
+    color: '#777',
+    fontSize: 16,
   },
 });
