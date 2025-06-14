@@ -125,7 +125,7 @@ export default function GiverFormScreen() {
       const match = /\.(\w+)$/.exec(filename || '');
       const type = match ? `image/${match[1]}` : `image/jpeg`;
 
-      formData.append('file', {
+      formData.append('photo', {
         uri: asset.uri,
         name: filename,
         type,
@@ -138,12 +138,19 @@ export default function GiverFormScreen() {
           body: formData,
         });
 
-        const data = await res.json();
-        if (data.url) {
-          setForm((prev) => ({ ...prev, fotos: [...prev.fotos, data.url] }));
-        } else {
-          Alert.alert('Error al subir imagen');
-        }
+ if (!res.ok) {
+  const errorText = await res.text(); // intenta leer el texto plano
+  console.error('Error en la respuesta al subir imagen:', errorText);
+  Alert.alert('Error al subir imagen');
+  return;
+}
+
+const data = await res.json();
+if (data.urls && data.urls.length > 0) {
+  setForm((prev) => ({ ...prev, fotos: [...prev.fotos, data.urls[0]] }));
+} else {
+  Alert.alert('No se recibió URL de imagen');
+}
       } catch (err) {
         console.error('Error al subir imagen', err);
         Alert.alert('Error al subir imagen');
