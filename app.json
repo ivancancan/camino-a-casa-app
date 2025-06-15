@@ -2,35 +2,30 @@
   "expo": {
     "name": "Arya",
     "slug": "arya",
-    "owner": "ivancancan",
-    "scheme": "com.arya.app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/arya.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/arya-splash-2.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#f8f2ff"
+      "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "url": "https://u.expo.dev/4d84b3fe-1670-4aa7-9c52-f44a8071869c"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
+      "bundleIdentifier": "com.ivancantu.arya",
       "supportsTablet": true,
-      "bundleIdentifier": "com.arya.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.arya.app",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/arya-adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true
-    },
-    "web": {
-      "favicon": "./assets/arya.png"
+      "package": "com.ivancantu.arya"
     },
     "extra": {
       "eas": {
