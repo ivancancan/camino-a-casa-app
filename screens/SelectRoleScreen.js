@@ -15,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { updateRoles } from '../services/authService';
 import { saveSession, getSession } from '../services/sessionService';
+import { API_BASE } from '../services/Api';
 
 const RoleCard = ({ icon, label, selected, onPress, scale }) => {
   const animatedStyle = useAnimatedStyle(() => ({
@@ -86,7 +87,28 @@ export default function SelectRoleScreen({ navigation }) {
 
       await saveSession(token, updatedUser);
 
-      const route = updatedUser.role === 'adopter' ? 'AdopterProfile' : 'GiverHome';
+      // 🟣 Crear perfil vacío si el rol es 'giver'
+      if (updatedUser.role === 'giver') {
+        try {
+          await fetch(`${API_BASE}/api/giver/profile`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              nombre: '',
+              contacto: '',
+              foto: '',
+            }),
+          });
+        } catch (error) {
+          console.error('❌ Error al crear perfil de giver:', error);
+        }
+      }
+
+      const route =
+        updatedUser.role === 'adopter' ? 'AdopterProfile' : 'GiverHome';
       navigation.navigate(route);
     } catch (err) {
       console.error('❌ Error en selección de rol:', err);

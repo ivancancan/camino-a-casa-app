@@ -7,9 +7,10 @@ export const saveSession = async (token, user) => {
   try {
     await AsyncStorage.setItem(TOKEN_KEY, token);
     await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
-    console.log('💾 Sesión guardada:');
-    console.log('🔑 Token:', token);
-    console.log('👤 Usuario:', user);
+
+    if (__DEV__) {
+      console.log('💾 Sesión guardada');
+    }
   } catch (error) {
     console.error('❌ Error al guardar sesión:', error);
   }
@@ -21,8 +22,9 @@ export const getSession = async () => {
     const userData = await AsyncStorage.getItem(USER_KEY);
     const parsedUser = userData ? JSON.parse(userData) : null;
 
-    console.log('📦 getSession → token:', token);
-    console.log('📦 getSession → user:', parsedUser);
+    if (__DEV__) {
+      console.log('📦 getSession ejecutado');
+    }
 
     return token && parsedUser ? { token, user: parsedUser } : null;
   } catch (error) {
@@ -35,7 +37,10 @@ export const clearSession = async () => {
   try {
     await AsyncStorage.removeItem(TOKEN_KEY);
     await AsyncStorage.removeItem(USER_KEY);
-    console.log('🧹 Sesión limpiada');
+
+    if (__DEV__) {
+      console.log('🧹 Sesión limpiada');
+    }
   } catch (error) {
     console.error('❌ Error al limpiar sesión:', error);
   }

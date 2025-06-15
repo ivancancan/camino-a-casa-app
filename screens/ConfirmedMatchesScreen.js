@@ -184,7 +184,10 @@ export default function ConfirmedMatchesScreen() {
             </View>
           )
         }
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={[
+  { padding: 16 },
+  matches.length === 0 && { flex: 1, justifyContent: 'center' },
+]}
       />
     </SafeAreaView>
   );
@@ -230,8 +233,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
-  noMoreText: {
-    fontSize: 18,
-    textAlign: 'center',
-  },
+noMoreText: {
+  fontSize: 18,
+  textAlign: 'center',
+  color: '#666',
+  lineHeight: 24,
+},
 });

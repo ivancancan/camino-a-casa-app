@@ -53,15 +53,38 @@ export default function GiverDashboardScreen() {
     fetchPets();
   }, [fetchPets]);
 
+  const updateStatus = async (petId, nuevoEstado) => {
+    try {
+      const { token } = await getSession();
+      const endpoint =
+        nuevoEstado === 'adoptado'
+          ? `${API_BASE}/api/pets/${petId}/mark-adopted`
+          : `${API_BASE}/api/pets/${petId}/mark-available`;
+
+      const res = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error('Error al actualizar estado');
+      fetchPets();
+    } catch (err) {
+      console.error('❌ Error al actualizar estado de mascota:', err.message);
+    }
+  };
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() => navigation.navigate('PetDetail', { pet: item })}
+      activeOpacity={0.9}
     >
       <View style={styles.imageWrapper}>
         <Image
           source={{ uri: item.fotos?.[0] }}
-          style={styles.image}
+          style={[styles.image, item.status === 'adoptado' && styles.imageAdopted]}
           contentFit="cover"
           transition={300}
           cachePolicy="memory-disk"
@@ -76,12 +99,32 @@ export default function GiverDashboardScreen() {
             </Text>
           </TouchableOpacity>
         )}
+        {item.status === 'adoptado' && (
+          <View style={styles.adoptedBadge}>
+            <Text style={styles.adoptedBadgeText}>Adoptado</Text>
+          </View>
+        )}
       </View>
+
       <View style={styles.cardContent}>
         <Text style={styles.name}>{item.nombre}</Text>
-        <Text style={styles.status}>
-          Estado: {item.estado || 'Disponible'}
+        <Text style={styles.details}>
+          Estado: {item.status === 'adoptado' ? 'Adoptado' : 'Disponible'}
         </Text>
+
+        <TouchableOpacity
+          style={[
+            styles.statusButton,
+            item.status === 'adoptado' ? styles.buttonAvailable : styles.buttonAdopted,
+          ]}
+          onPress={() =>
+            updateStatus(item.id, item.status === 'adoptado' ? 'disponible' : 'adoptado')
+          }
+        >
+          <Text style={styles.statusButtonText}>
+            {item.status === 'adoptado' ? 'Marcar como disponible' : 'Marcar como adoptado'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -125,14 +168,18 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
-    paddingTop: 8, // Para dar un poco más de aire abajo del status bar
+    paddingTop: 8,
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    marginBottom: 16,
-    elevation: 3,
+    marginBottom: 20,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   imageWrapper: {
     position: 'relative',
@@ -140,6 +187,9 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 180,
+  },
+  imageAdopted: {
+    opacity: 0.8,
   },
   badge: {
     position: 'absolute',
@@ -156,17 +206,49 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
+  adoptedBadge: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    zIndex: 10,
+  },
+  adoptedBadgeText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
   cardContent: {
-    padding: 12,
+    padding: 14,
   },
   name: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    marginBottom: 4,
   },
-  status: {
+  details: {
     fontSize: 14,
-    color: '#555',
-    marginTop: 4,
+    color: '#666',
+    marginBottom: 12,
+  },
+  statusButton: {
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonAdopted: {
+    backgroundColor: '#4CAF50',
+  },
+  buttonAvailable: {
+    backgroundColor: '#f59e0b',
+  },
+  statusButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
   },
   loaderContainer: {
     flex: 1,
