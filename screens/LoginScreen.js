@@ -68,7 +68,7 @@ export default function LoginScreen({ navigation }) {
         >
           <ScrollView contentContainerStyle={styles.scroll}>
             <Image
-              source={require('../assets/arya.png')}
+              source={require('../assets/icon.png')}
               style={styles.logo}
               contentFit="contain"
               transition={300}
