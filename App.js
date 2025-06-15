@@ -40,7 +40,7 @@ export default function App() {
     return (
       <View style={styles.loadingContainer}>
         <Image
-          source={require('./assets/arya.png')}
+          source={require('./assets/icon.png')}
           style={styles.logo}
           resizeMode="contain"
         />
