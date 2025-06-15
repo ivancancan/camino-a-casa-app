@@ -1,1 +1,1 @@
-export const API_BASE = 'https://e045-189-181-233-175.ngrok-free.app';
+export const API_BASE = 'https://camino-a-casa-api-production.up.railway.app';

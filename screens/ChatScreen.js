@@ -40,8 +40,8 @@ export default function ChatScreen() {
         try {
           const session = await getSession();
 
-          await fetch(`${API_BASE}/api/messages/${conversationId}/mark-read`, {
-            method: 'PUT',
+          await fetch(`${API_BASE}/api/messages/${conversationId}/mark-as-read`, {
+            method: 'PATCH',
             headers: {
               Authorization: `Bearer ${session.token}`,
             },
