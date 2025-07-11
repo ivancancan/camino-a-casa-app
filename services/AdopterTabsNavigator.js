@@ -7,6 +7,7 @@ import AdopterProfileScreen from '../screens/AdopterProfileScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import AdopterMatchesScreen from '../screens/AdopterMatchesScreen';
 import MessagesListScreen from '../screens/MessagesListScreen';
+import TermsScreen from '../screens/TermScreen';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
 import { useFocusEffect } from '@react-navigation/native';
@@ -15,15 +16,14 @@ export const UnreadCountContext = createContext({ unreadCount: 0, setUnreadCount
 
 const Tab = createBottomTabNavigator();
 
-const Badge = ({ count }) => {
-  if (!count || count <= 0) return null;
-  return (
+const Badge = ({ count }) =>
+  count > 0 ? (
     <View
       style={{
         position: 'absolute',
         right: -6,
         top: -4,
-        backgroundColor: 'red',
+        backgroundColor: '#a259ff',
         borderRadius: 10,
         width: 18,
         height: 18,
@@ -36,8 +36,7 @@ const Badge = ({ count }) => {
         {count > 9 ? '9+' : count}
       </Text>
     </View>
-  );
-};
+  ) : null;
 
 export default function AdopterTabsNavigator() {
   const [unreadCount, setUnreadCount] = useState(0);

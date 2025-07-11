@@ -18,7 +18,9 @@ import AdopterTabsNavigator from '../services/AdopterTabsNavigator';
 import InterestedUsersScreen from '../screens/InterestedUsersScreen';
 import ConfirmedMatchesScreen from '../screens/ConfirmedMatchesScreen';
 import ChatScreen from '../screens/ChatScreen';
-import AdopterProfileDetailScreen from '../screens/AdopterProfileDetailScreen'; // ✅ nuevo import
+import AdopterProfileDetailScreen from '../screens/AdopterProfileDetailScreen';
+import TermScreen from '../screens/TermScreen';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -110,7 +112,14 @@ export default function Navigation({ initialRoute = 'Login' }) {
         <Stack.Screen
           name="AdopterProfileDetail"
           component={AdopterProfileDetailScreen}
-          options={{ title: 'Perfil del Interesado' }} // ✅ título personalizado
+          options={{ title: 'Perfil del Interesado' }}
+        />
+
+        {/* Términos */}
+        <Stack.Screen
+          name="Terms"
+          component={TermScreen}
+          options={{ title: 'Términos de Uso' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

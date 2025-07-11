@@ -6,11 +6,13 @@ import {
   Platform,
   ScrollView,
   View,
+  TouchableOpacity,
 } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
+import { TextInput, Button, Text } from 'react-native-paper';
 import { register } from '../services/authService';
 import { saveSession } from '../services/sessionService';
-import { Image, ImageBackground } from 'expo-image'; // ✅ mantenemos consistente con login
+import { Image, ImageBackground } from 'expo-image';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function RegisterScreen({ navigation }) {
   const [form, setForm] = useState({
@@ -20,6 +22,7 @@ export default function RegisterScreen({ navigation }) {
     confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -115,12 +118,35 @@ export default function RegisterScreen({ navigation }) {
               style={styles.input}
             />
 
+            {/* ✅ Checkbox visible usando ícono */}
+            <View style={styles.termsRow}>
+              <TouchableOpacity
+                onPress={() => setAcceptedTerms(!acceptedTerms)}
+                style={styles.iconCheckbox}
+              >
+                <MaterialCommunityIcons
+                  name={acceptedTerms ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                  size={24}
+                  color="#6200ee"
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Terms')}
+                style={styles.termsTextWrapper}
+              >
+                <Text style={styles.termsText}>
+                  Acepto los <Text style={styles.linkText}>Términos de Uso</Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <Button
               mode="contained"
               onPress={handleRegister}
               style={styles.button}
               loading={loading}
-              disabled={loading}
+              disabled={loading || !acceptedTerms}
               contentStyle={styles.buttonContent}
             >
               Registrarse
@@ -167,5 +193,29 @@ const styles = StyleSheet.create({
   },
   link: {
     marginTop: 20,
+  },
+  termsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    flexWrap: 'wrap',
+  },
+  iconCheckbox: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  termsTextWrapper: {
+    flexShrink: 1,
+    paddingLeft: 4,
+  },
+  termsText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  linkText: {
+    color: '#6200ee',
+    fontWeight: 'bold',
   },
 });

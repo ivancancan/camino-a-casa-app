@@ -7,10 +7,12 @@ import {
   Pressable,
   Dimensions,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { Text, Title, Chip, Button, Divider } from 'react-native-paper';
 import { Image } from 'expo-image';
 import { getSession } from '../services/sessionService';
+import { API_BASE } from '../services/Api';
 
 export default function PetDetailScreen({ route, navigation }) {
   const { pet } = route.params;
@@ -33,6 +35,46 @@ export default function PetDetailScreen({ route, navigation }) {
 
   const openImage = (uri) => setSelectedImage(uri);
   const closeModal = () => setSelectedImage(null);
+
+  const handleReportPet = async () => {
+    Alert.alert(
+      'Reportar mascota',
+      '¿Deseas reportar esta mascota por contenido inapropiado?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Reportar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { token } = await getSession();
+              const res = await fetch(`${API_BASE}/api/report`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  tipo: 'pet',
+                  id: pet.id,
+                  motivo: 'Contenido inapropiado',
+                }),
+              });
+
+              if (res.ok) {
+                Alert.alert('Gracias', 'Reporte enviado con éxito.');
+              } else {
+                Alert.alert('Error', 'No se pudo enviar el reporte.');
+              }
+            } catch (err) {
+              console.error('❌ Error al reportar mascota:', err);
+              Alert.alert('Error', 'Algo salió mal al reportar.');
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -103,9 +145,20 @@ export default function PetDetailScreen({ route, navigation }) {
             Editar Mascota
           </Button>
         )}
+
+        {!canEdit && (
+          <Button
+            icon="flag"
+            mode="outlined"
+            textColor="red"
+            style={{ marginTop: 20 }}
+            onPress={handleReportPet}
+          >
+            Reportar mascota
+          </Button>
+        )}
       </ScrollView>
 
-      {/* Modal para ver imagen ampliada */}
       <Modal visible={!!selectedImage} transparent>
         <Pressable style={styles.modalBackground} onPress={closeModal}>
           {selectedImage && (

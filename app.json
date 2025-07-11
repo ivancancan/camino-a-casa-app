@@ -19,7 +19,8 @@
     ],
     "ios": {
       "bundleIdentifier": "com.ivancantu.arya",
-      "supportsTablet": true,
+      "buildNumber": "2",
+      "supportsTablet": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

@@ -8,11 +8,13 @@ import {
   RefreshControl,
   ActivityIndicator,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { getSession } from '../services/sessionService';
 import { API_BASE } from '../services/Api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function GiverDashboardScreen() {
   const [pets, setPets] = useState([]);

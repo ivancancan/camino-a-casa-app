@@ -60,6 +60,29 @@ export default function ProfileScreen({ navigation }) {
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      const { token } = await getSession();
+      const res = await fetch(`${API_BASE}/api/auth/delete-account`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        Alert.alert('Cuenta eliminada', 'Tu cuenta ha sido eliminada correctamente.');
+        await clearSession();
+        navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+      } else {
+        Alert.alert('Error', data.error || 'No se pudo eliminar tu cuenta.');
+      }
+    } catch (err) {
+      console.error('❌ Error al eliminar cuenta:', err);
+      Alert.alert('Error', 'No se pudo eliminar tu cuenta.');
+    }
+  };
+
   const pickImage = async (fromCamera = false) => {
     const permission = fromCamera
       ? await ImagePicker.requestCameraPermissionsAsync()
@@ -164,9 +187,7 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {uploading || loadingPhoto ? (
-          <ActivityIndicator style={{ marginBottom: 20 }} />
-        ) : null}
+        {uploading || loadingPhoto ? <ActivityIndicator style={{ marginBottom: 20 }} /> : null}
 
         {user && (
           <>
@@ -182,6 +203,15 @@ export default function ProfileScreen({ navigation }) {
           labelStyle={{ color: '#6200ee' }}
         >
           Cerrar sesión
+        </Button>
+
+        <Button
+          mode="outlined"
+          onPress={handleDeleteAccount}
+          style={{ marginTop: 10, borderColor: 'red' }}
+          labelStyle={{ color: 'red' }}
+        >
+          Eliminar cuenta
         </Button>
       </View>
     </SafeAreaView>
